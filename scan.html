@@ -139,34 +139,36 @@ function loadList() {
 
     // 渲染表格
 // 渲染表格 (增加點擊事件)
-function renderTable() {
-    const body = document.getElementById('student-list-body');
-    body.innerHTML = "";
-    let checkedCount = 0;
+// 渲染表格 (完整覆蓋版：增加點擊與詳細資料功能)
+    function renderTable() {
+        const body = document.getElementById('student-list-body');
+        body.innerHTML = "";
+        let checkedCount = 0;
 
-    allStudents.forEach((s, index) => { // 取得 index
-        const isChecked = s.status_checkin === "已報到";
-        if (isChecked) checkedCount++;
-        
-        const row = document.createElement('tr');
-        if (isChecked) row.className = "row-checked";
-        
-        // 在姓名 td 加上 onclick
-        row.innerHTML = `
-            <td onclick="showStudentDetail(${index})" style="cursor:pointer;">
-                <b>${s.name}</b><br><small>${s.instrument}</small>
-            </td>
-            <td>${s.parName}<br><small>${s.parPhone}</small></td>
-            <td><span class="${isChecked ? 'status-checkin' : 'status-wait'}">${s.status_checkin || '未報到'}</span></td>
-        `;
-        body.appendChild(row);
-    });
+        // 確保這裡有傳入 index，才能對應到 showDetail
+        allStudents.forEach((s, index) => {
+            const isChecked = s.status === "已報到";
+            if (isChecked) checkedCount++;
+            
+            const row = document.createElement('tr');
+            if (isChecked) row.className = "row-checked";
+            
+            // 這裡將姓名 td 加上 onclick 事件與游標樣式
+            row.innerHTML = `
+                <td onclick="showDetail(${index})" style="cursor:pointer; color:#2c3e50; text-decoration: underline;">
+                    <b>${s.name}</b><br><small>${s.instrument}</small>
+                </td>
+                <td>${s.parName}<br><small>${s.parPhone}</small></td>
+                <td><span class="${isChecked ? 'status-checkin' : 'status-wait'}">${s.status || '未報到'}</span></td>
+            `;
+            body.appendChild(row);
+        });
 
-    // 更新統計資訊與備註
-    document.getElementById('stats-info').innerHTML = 
-        `📊 今日報到進度：${checkedCount} / ${allStudents.length}<br>` +
-        `<small style="color:#666;">備註：點選學員名稱可顯示詳細資料</small>`;
-}
+        // 修改這裡：從 innerText 改成 innerHTML，才能在下方顯示灰色備註
+        document.getElementById('stats-info').innerHTML = 
+            `📊 今日報到進度：${checkedCount} / ${allStudents.length}<br>` +
+            `<small style="color:#666;">備註：點選學員名稱可顯示詳細資料</small>`;
+    }
 
     // 處理報到動作
     function processCheckIn(qrcId) {
