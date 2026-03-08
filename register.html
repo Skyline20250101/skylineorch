@@ -297,17 +297,26 @@ function detectChange() {
         else { sg.style.display = 'block'; zm.style.display = 'none'; }
     }
 
-    function submitForm() {
+function submitForm() {
         const form = document.getElementById('reg-form');
         if (!form.checkValidity()) return form.reportValidity();
         const btn = document.getElementById('btn-submit');
         btn.disabled = true;
-        btn.innerText = "處理中...";
+        btn.innerText = "報名處理中...";
 
         const name = document.getElementById('stuName').value;
-        const date = document.getElementById('courseDate').value;
         const pinyinName = pinyinPro.pinyin(name, { toneType: 'none', type: 'array' }).join('');
-        const qrcId = `${pinyinName}-${date}-${Math.floor(100 + Math.random()*899)}`;
+        
+        // 取得報名當下的日期與時間亂數 (例如: 20240520143005)
+        const now = new Date();
+        const timestamp = now.getFullYear() + 
+                        String(now.getMonth() + 1).padStart(2, '0') + 
+                        String(now.getDate()).padStart(2, '0') + 
+                        String(now.getHours()).padStart(2, '0') + 
+                        String(now.getMinutes()).padStart(2, '0') + 
+                        String(now.getSeconds()).padStart(2, '0');
+        
+        const qrcId = `${pinyinName}-${timestamp}`; // 姓名拼音-報名當刻時間
 
         const payload = {
             action: 'register',
@@ -324,7 +333,7 @@ function detectChange() {
             dist: document.getElementById('dist').value,
             address: document.getElementById('address').value,
             source: document.getElementById('source').value,
-            courseDate: date,
+            courseDate: document.getElementById('courseDate').value,
             qrcId: qrcId
         };
 
@@ -337,7 +346,7 @@ function detectChange() {
             }
         });
     }
-
+    
     function showQRCode(qrcId) {
         const qrDiv = document.getElementById("qrcode");
         qrDiv.innerHTML = ""; 
