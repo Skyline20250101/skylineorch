@@ -17,7 +17,6 @@
         input[readonly] { background-color: #eee; cursor: not-allowed; }
         button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 10px; font-weight: bold; }
         button:hover { background: #34495e; }
-        .btn-line { background: #00b900; margin-top: 8px; }
         .hidden { display: none; }
         #student-selector { background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid var(--info); }
         .status-box { background: #fff5f5; border: 2px solid var(--danger); color: var(--danger); padding: 12px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 18px; margin: 10px 0; }
@@ -76,7 +75,7 @@
                 <option value="10年以上">10年以上</option>
             </select>
             <div id="zero-msg" class="info-msg">
-                您好：我們將會為您安排學習課程，請靜待樂團老師電話聯繫，或使用官方LINE做詢問。
+                您好：我們將會為您安排學習課程，請靜待樂團老師電話聯繫。
             </div>
         </div>
         <div class="form-group" id="song-group" style="display:none;">
@@ -100,7 +99,7 @@
         <div class="form-group">
             <label>報名日期場次 *</label>
             <select id="courseDate" required>
-                <option value="">-- 請選擇日期場次 --</option>
+                <option value="">-- 請選擇 --</option>
             </select>
         </div>
 
@@ -128,15 +127,15 @@
         <div id="qrcode"></div>
         <p id="display-qrcid" style="font-size: 12px; color: #999;"></p>
         <button onclick="downloadQR()" style="background:#7f8c8d;">下載憑證圖片</button>
-        <button class="btn-line" onclick="contactLine()">開啟官方 LINE 回報</button>
     </div>
 </div>
 
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyg3uS15mMhbY87YnyMuM77ZateljVNpH3555EUYUv9iKInO35EMrina3wzir-AZMh5/exec";
-    const LINE_ID = "@597suzyh"; // 您的官方 LINE ID
     let userData = [];
-    const twData = {"台北市":["中正區","大同區","中山區","松山區","大安區","萬華區","信義區","士林區","北投區","內湖區","南港區","文山區"],"新北市":["板橋區","三重區","中和區","永和區","新莊區","新店區","樹林區","鶯歌區","三峽區","淡水區","汐止區","瑞芳區","土城區","蘆洲區","五股區","泰山區","林口區","深坑區","石碇區","坪林區","三芝區","石門區","八里區","平溪區","雙溪區","貢寮區","金山區","萬里區","烏來區"],"桃園市":["桃園區","中壢區","大溪區","楊梅區","蘆竹區","大園區","龜山區","八德區","龍潭區","平鎮區","新屋區","觀音區","復興區"],"台中市":["中區","東區","南區","西區","北區","北屯區","西屯區","南屯區","太平區","大里區","霧峰區","烏日區","豐原區","後里區","石岡區","東勢區","和平區","新社區","潭子區","大雅區","神岡區","大肚區","沙鹿區","龍井區","梧棲區","清水區","大甲區","外埔區","大安區"],"台南市":["中西區","東區","南區","北區","安平區","安南區","永康區","歸仁區","新化區","左鎮區","玉井區","楠西區","南化區","仁德區","關廟區","龍崎區","官田區","麻豆區","佳里區","西港區","七股區","將軍區","學甲區","北門區","新營區","後壁區","白河區","東山區","六甲區","下營區","柳營區","鹽水區","善化區","大內區","山上區","新市區","安定區"],"高雄市":["新興區","前金區","苓雅區","鹽埕區","鼓山區","旗津區","前鎮區","三民區","楠梓區","小港區","左營區","仁武區","大社區","岡山區","路竹區","阿蓮區","田寮區","燕巢區","橋頭區","梓官區","彌陀區","永安區","湖內區","鳳山區","大寮區","林園區","鳥松區","大樹區","旗山區","美濃區","六龜區","內門區","杉林區","甲仙區","桃源區","那瑪夏區","茂林區","茄萣區"]};
+    let serverHeaders = [];
+
+    const twData = {"台北市":["中正區","大同區","中山區","松山區","大安區","萬華區","信義區","士林區","北投區","內湖區","南港區","文山區"],"新北市":["板橋區","三重區","中和區","永和區","新莊區","新店區","樹林區","鶯歌區","三峽區","淡水區","汐止區","瑞芳區","土城區","蘆洲區","五股區","泰山區","林口區","深坑區","石碇區","坪林區","三芝區","石門區","八里區","平溪區","雙溪區","貢寮區","金山區","萬里區","烏來區"],"桃園市":["桃園區","中壢區","大溪區","楊梅區","蘆竹區","大園區","龜山區","八德區","龍潭區","平鎮區","新屋區","觀音區","復興區"],"台中市":["中區","東區","南區","西區","北區","北屯區","西屯區","南屯區","太平區","大里區","霧峰區","烏日區","豐原區","後里區","石岡區","東勢區","和平區","新社區","潭子區","大雅區","神岡區","大肚區","沙鹿區","龍井區","梧棲區","清水區","大甲區","外埔區","大安區"],"台南市":["中西區","東區","南區","北區","安平區","安南區","永康區","歸仁區","新化區","左鎮區","玉井區","楠西區","南化區","仁德區","關廟區","龍崎區","官田區","麻豆區","佳里區","西港區","七股區","將軍區","學甲區","北門區","新營區","後壁區","白河區","東山區","六甲區","下營區","柳營區","鹽水區","善化區","大內區","山上區","新市區","安定區"],"高雄市":["新興區","前金區","苓雅區","鹽埕區","鼓山區","旗津區","前鎮區","三民區","楠梓區","小港區","左營區","仁武區","大社區","岡山區","路竹區","阿蓮區","田寮區","燕巢區","橋頭區","梓官區","彌陀區","永安區","湖內區","鳳山區","大寮區","林園區","鳥松區","大樹區","旗山區","美濃區","六龜區","內門區","杉林區","甲仙區","桃源區","那瑪夏區","茂林區","茄萣區"],"基隆市":["仁愛區","信義區","中正區","中山區","安樂區","暖暖區","七堵區"],"新竹市":["東區","北區","香山區"],"新竹縣":["竹北市","竹東鎮","新埔鎮","關西鎮","湖口鄉","新豐鄉","芎林鄉","橫山鄉","北埔鄉","寶山鄉","峨眉鄉","尖石鄉","五峰鄉"],"苗栗縣":["苗栗市","頭份市","竹南鎮","後龍鎮","通霄鎮","苑裡鎮","造橋鄉","西湖鄉","頭屋鄉","公館鄉","銅鑼鄉","三義鄉","大湖鄉","獅潭鄉","三灣鄉","南庄鄉","卓蘭鎮","泰安鄉"],"彰化縣":["彰化市","員林市","和美鎮","鹿港鎮","溪湖鎮","二林鎮","田中鎮","北斗鎮","花壇鄉","芬園鄉","大村鄉","永靖鄉","伸港鄉","線西鄉","福興鄉","秀水鄉","埔心鄉","埔鹽鄉","大城鄉","芳苑鄉","竹塘鄉","溪州鄉","埤頭鄉","二水鄉","田尾鄉","社頭鄉"],"南投縣":["南投市","埔里鎮","草屯鎮","竹山鎮","集集鎮","名間鄉","鹿谷鄉","中寮鄉","魚池鄉","國姓鄉","水里鄉","信義鄉","仁愛鄉"],"雲林縣":["斗六市","斗南鎮","虎尾鎮","西螺鎮","土庫鎮","北港鎮","古坑鄉","大埤鄉","莿桐鄉","林內鄉","二崙鄉","崙背鄉","麥寮鄉","東勢鄉","褒忠鄉","台西鄉","元長鄉","四湖鄉","口湖鄉","水林鄉"],"嘉義市":["東區","西區"],"嘉義縣":["太保市","朴子市","布袋鎮","大林鎮","民雄鄉","溪口鄉","新港鄉","六腳鄉","東石鄉","義竹鄉","鹿草鄉","水上鄉","中埔鄉","竹崎鄉","梅山鄉","番路鄉","大埔鄉","阿里山鄉"],"屏東縣":["屏東市","潮州鎮","東港鎮","恆春鎮","萬丹鄉","長治鄉","麟洛鄉","九如鄉","里港鄉","鹽埔鄉","高樹鄉","萬巒鄉","內埔鄉","竹田鄉","新埤鄉","枋寮鄉","新園鄉","崁頂鄉","林邊鄉","南州鄉","佳冬鄉","琉球鄉","車城鄉","滿州鄉","枋山鄉","三地門鄉","霧台鄉","瑪家鄉","泰武鄉","來義鄉","春日鄉","獅子鄉","牡丹鄉"],"宜蘭縣":["宜蘭市","羅東鎮","蘇澳鎮","頭城鎮","礁溪鄉","壯圍鄉","員山鄉","冬山鄉","五結鄉","三星鄉","大同鄉","南澳鄉"],"花蓮縣":["花蓮市","鳳林鎮","玉里鎮","新城鄉","吉安鄉","壽豐鄉","光復鄉","豐濱鄉","瑞穗鄉","富里鄉","秀林鄉","萬榮鄉","卓溪鄉"],"台東縣":["台東市","成功鎮","關山鎮","卑南鄉","鹿野鄉","池上鄉","東河鄉","長濱鄉","太麻里鄉","大武鄉","綠島鄉","海端鄉","延平鄉","金峰鄉","達仁鄉","蘭嶼鄉"],"澎湖縣":["馬公市","湖西鄉","白沙鄉","西嶼鄉","望安鄉","七美鄉"],"金門縣":["金城鎮","金湖鎮","金沙鎮","金寧鄉","烈嶼鄉","烏坵鄉"],"連江縣":["南竿鄉","北竿鄉","莒光鄉","東引鄉"]};
 
     window.onload = () => {
         const citySelect = document.getElementById('city');
@@ -146,14 +145,13 @@
     function updateDist(city) {
         const distSelect = document.getElementById('dist');
         distSelect.innerHTML = '<option value="">-- 請選擇區域 --</option>';
-        if(!city) return;
+        if(!city || !twData[city]) return;
         twData[city].forEach(d => distSelect.add(new Option(d, d)));
     }
 
     function checkUser() {
         const phone = document.getElementById('search-phone').value.trim();
         if (phone.length < 10) return alert("請輸入 10 碼家長手機號碼");
-        
         document.getElementById('loading').style.display = 'block';
         
         fetch(GAS_URL, {
@@ -165,14 +163,12 @@
             document.getElementById('reg-form').classList.remove('hidden');
             document.getElementById('parPhone').value = phone;
 
-            // 動態抓取日期欄位 (8位數字)
+            serverHeaders = res.headers || [];
             if (res.headers) {
                 const dateSelect = document.getElementById('courseDate');
-                dateSelect.innerHTML = '<option value="">-- 請選擇日期場次 --</option>';
+                dateSelect.innerHTML = '<option value="">-- 請選擇 --</option>';
                 res.headers.forEach(h => {
-                    if (/^\d{8}$/.test(h.toString())) {
-                        dateSelect.add(new Option(h, h));
-                    }
+                    if (/^\d{8}$/.test(h.toString())) dateSelect.add(new Option(h, h));
                 });
             }
 
@@ -189,6 +185,7 @@
         const btn = document.getElementById('btn-submit');
         const statusArea = document.getElementById('status-display-area');
         const qrResult = document.getElementById('qr-result');
+        const dateSelect = document.getElementById('courseDate');
 
         if (val === "" || val === "new") {
             document.getElementById('reg-form').reset();
@@ -214,13 +211,18 @@
         document.getElementById('address').value = s.address;
         document.getElementById('source').value = s.source;
         
-        handleStudyTime(s.studyTime);
+        // 自動對齊原本報名的日期
+        dateSelect.selectedIndex = 0;
+        serverHeaders.forEach(h => {
+            if (/^\d{8}$/.test(h.toString()) && s[h]) {
+                dateSelect.value = h;
+            }
+        });
 
-        // 顯示錄取狀態
+        handleStudyTime(s.studyTime);
         statusArea.classList.remove('hidden');
         document.getElementById('status-box').innerText = s.adStatus || "審核中";
 
-        // 舊生若已有 QRC ID 則直接顯示並隱藏送出按鈕
         if (s.qrcId) {
             btn.classList.add('hidden');
             showQRCode(s.qrcId);
@@ -248,7 +250,6 @@
     function submitForm() {
         const form = document.getElementById('reg-form');
         if (!form.checkValidity()) return form.reportValidity();
-        
         const btn = document.getElementById('btn-submit');
         btn.disabled = true;
         btn.innerText = "處理中...";
@@ -306,13 +307,6 @@
         link.href = canvas.toDataURL("image/png");
         link.download = `Skyline憑證_${document.getElementById('stuName').value}.png`;
         link.click();
-    }
-
-    function contactLine() {
-        const name = document.getElementById('stuName').value;
-        const date = document.getElementById('courseDate').value;
-        const msg = encodeURIComponent(`您好，我是 ${name} 的家長，已完成 ${date} 招募報名，請協助確認。`);
-        window.location.href = `https://line.me/R/oaMessage/${LINE_ID}/?${msg}`; 
     }
 </script>
 </body>
