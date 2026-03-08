@@ -3,38 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skyline 報到管理系統</title>
+    <title>Skyline 報到管理系統 (即時名單版)</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --warn: #f39c12; --danger: #e74c3c; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f3f5; margin: 0; padding: 15px; text-align: center; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { color: var(--primary); margin-top: 0; }
-        .config-box { margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: left; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; }
-        select { width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ddd; }
+        :root { --primary: #2c3e50; --success: #27ae60; --warn: #f39c12; --danger: #e74c3c; --blue: #3498db; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f3f5; margin: 0; padding: 10px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); margin: 0 0 15px 0; font-size: 20px; }
         
-        #reader { width: 100%; border-radius: 8px; overflow: hidden; border: 2px solid #ddd; }
+        .config-box { margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; gap: 10px; }
+        select { flex: 1; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ddd; }
         
-        #result-card { margin-top: 20px; padding: 20px; border-radius: 10px; display: none; }
-        .success-bg { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
-        .warn-bg { background: #fff3cd; color: #856404; border: 2px solid #ffeeba; }
-        .error-bg { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; border: 2px solid #ddd; margin-bottom: 15px; }
         
-        .stu-info { font-size: 20px; font-weight: bold; margin: 10px 0; }
-        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; background: var(--primary); color: white; font-size: 14px; }
+        /* 統計與清單樣式 */
+        .stats { font-weight: bold; margin-bottom: 10px; color: var(--blue); text-align: left; }
+        .list-container { max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #eee; position: sticky; top: 0; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #f0f0f0; }
         
-        button { width: 100%; padding: 12px; margin-top: 15px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; background: var(--primary); color: white; }
+        /* 狀態顏色 */
+        .status-checkin { color: white; background: var(--success); padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .status-wait { color: #777; background: #eee; padding: 2px 6px; border-radius: 4px; }
+        .row-checked { background-color: #eafff0 !important; }
+
+        #result-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        .overlay-card { background: white; color: #333; padding: 30px; border-radius: 15px; text-align: center; width: 80%; max-width: 300px; }
+        .btn-close { margin-top: 20px; padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>報到管理系統</h2>
+    <h2>Skyline 報到管理系統</h2>
     
     <div class="config-box">
-        <label>1. 選擇今日報到場次</label>
-        <select id="courseDate">
+        <label>場次：</label>
+        <select id="courseDate" onchange="loadList()">
             <option value="20260315">2026-03-15</option>
             <option value="20260322">2026-03-22</option>
             <option value="20260329">2026-03-29</option>
@@ -43,108 +49,139 @@
 
     <div id="reader"></div>
 
-    <div id="result-card">
-        <div id="result-title" style="font-weight: bold; font-size: 18px;"></div>
-        <div class="stu-info" id="stu-name"></div>
-        <div id="stu-detail"></div>
-        <div class="status-badge" id="stu-adstatus"></div>
-        <button onclick="resetScanner()">繼續掃描下一個</button>
+    <div class="stats" id="stats-info">載入名單中...</div>
+    
+    <div class="list-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>學員姓名</th>
+                    <th>家長姓名 / 手機</th>
+                    <th>狀態</th>
+                </tr>
+            </thead>
+            <tbody id="student-list-body">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="result-overlay">
+    <div class="overlay-card" id="overlay-content">
+        <div id="res-icon" style="font-size: 50px;"></div>
+        <div id="res-msg" style="font-size: 20px; font-weight: bold; margin: 10px 0;"></div>
+        <div id="res-detail" style="color: #666; margin-bottom: 10px;"></div>
+        <div id="res-ad" style="font-weight: bold; color: var(--danger);"></div>
+        <button class="btn-close" onclick="closeOverlay()">繼續掃描</button>
     </div>
 </div>
 
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyg3uS15mMhbY87YnyMuM77ZateljVNpH3555EUYUv9iKInO35EMrina3wzir-AZMh5/exec";
     let html5QrCode;
+    let allStudents = [];
 
-    // 初始化掃描器
+    // 初始化
+    window.onload = () => {
+        loadList(); // 先抓名單
+        initScanner();
+    };
+
     function initScanner() {
         html5QrCode = new Html5Qrcode("reader");
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-        
+        const config = { fps: 15, qrbox: { width: 200, height: 200 } };
         html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
     }
 
     function onScanSuccess(decodedText) {
-        // 暫停掃描以處理資料
         html5QrCode.pause();
         processCheckIn(decodedText);
     }
 
+    // 抓取雲端名單
+    function loadList() {
+        const date = document.getElementById('courseDate').value;
+        document.getElementById('stats-info').innerText = "正在更新名單...";
+        
+        fetch(`${GAS_URL}?action=getList&courseDate=${date}`) // 注意：GET 請求需要 GAS 端對應
+        .then(res => res.json())
+        .then(res => {
+            if (res.result === 'success') {
+                allStudents = res.data;
+                renderTable();
+            }
+        });
+    }
+
+    // 渲染表格
+    function renderTable() {
+        const body = document.getElementById('student-list-body');
+        body.innerHTML = "";
+        let checkedCount = 0;
+
+        allStudents.forEach(s => {
+            const isChecked = s.status === "已報到";
+            if (isChecked) checkedCount++;
+            
+            const row = document.createElement('tr');
+            if (isChecked) row.className = "row-checked";
+            
+            row.innerHTML = `
+                <td><b>${s.name}</b><br><small>${s.instrument}</small></td>
+                <td>${s.parName}<br><small>${s.parPhone}</small></td>
+                <td><span class="${isChecked ? 'status-checkin' : 'status-wait'}">${s.status || '未報到'}</span></td>
+            `;
+            body.appendChild(row);
+        });
+
+        document.getElementById('stats-info').innerText = `📊 今日報到進度：${checkedCount} / ${allStudents.length}`;
+    }
+
+    // 處理報到動作
     function processCheckIn(qrcId) {
         const date = document.getElementById('courseDate').value;
-        const card = document.getElementById('result-card');
+        const overlay = document.getElementById('result-overlay');
         
-        card.style.display = "block";
-        card.className = "warn-bg";
-        document.getElementById('result-title').innerText = "處理中...";
-        document.getElementById('stu-name').innerText = "通訊中...";
-        document.getElementById('stu-detail').innerText = "";
-        document.getElementById('stu-adstatus').innerText = "";
+        overlay.style.display = "flex";
+        document.getElementById('res-msg').innerText = "驗證中...";
+        document.getElementById('res-icon').innerText = "⏳";
 
         fetch(GAS_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                action: 'checkIn',
-                qrcId: qrcId,
-                courseDate: date
-            })
+            body: JSON.stringify({ action: 'checkIn', qrcId: qrcId, courseDate: date })
         })
         .then(res => res.json())
         .then(res => {
             if (res.result === 'success') {
-                card.className = "success-bg";
-                document.getElementById('result-title').innerText = "✓ 報到成功";
-                document.getElementById('stu-name').innerText = res.name;
-                document.getElementById('stu-detail').innerText = "項目：" + res.instrument;
-                document.getElementById('stu-adstatus').innerText = "錄取狀態：" + res.adStatus;
+                document.getElementById('res-icon').innerText = "✅";
+                document.getElementById('res-msg').innerText = "報到成功";
+                document.getElementById('res-detail').innerText = `${res.name} (${res.instrument})`;
+                document.getElementById('res-ad').innerText = "錄取狀態：" + res.adStatus;
                 playTone(true);
-            } else if (res.result === 'already') {
-                card.className = "warn-bg";
-                document.getElementById('result-title').innerText = "！ 重複報到";
-                document.getElementById('stu-name').innerText = "此學員已完成報到";
-                playTone(false);
+                loadList(); // 報到成功後立即刷新清單
             } else {
-                card.className = "error-bg";
-                document.getElementById('result-title').innerText = "✕ 報到失敗";
-                document.getElementById('stu-name').innerText = res.message || "無效憑證";
+                document.getElementById('res-icon').innerText = "❌";
+                document.getElementById('res-msg').innerText = res.result === 'already' ? "重複報到" : "驗證失敗";
+                document.getElementById('res-detail').innerText = res.message || "";
                 playTone(false);
             }
-        })
-        .catch(err => {
-            alert("系統錯誤：" + err);
-            resetScanner();
         });
     }
 
-    function resetScanner() {
-        document.getElementById('result-card').style.display = "none";
+    function closeOverlay() {
+        document.getElementById('result-overlay').style.display = "none";
         html5QrCode.resume();
     }
 
-    // 報到成功/失敗的音效回饋
     function playTone(isSuccess) {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        
-        if (isSuccess) {
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.1);
-        } else {
-            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.2);
-        }
-        
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(isSuccess ? 880 : 220, audioCtx.currentTime);
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
     }
-
-    window.onload = initScanner;
 </script>
 
 </body>
