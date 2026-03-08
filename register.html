@@ -179,11 +179,21 @@
         });
     }
 
-    function autoFill(val) {
+function autoFill(val) {
         const form = document.getElementById('reg-form');
         const btnSubmit = document.getElementById('btn-submit');
         const btnDelete = document.getElementById('btn-delete');
         const btnUpdate = document.getElementById('btn-update');
+
+        // 先恢復所有欄位為可編輯狀態，避免切換時卡死
+        const allInputs = form.querySelectorAll('input, select');
+        allInputs.forEach(el => {
+            if (el.id !== 'parPhone') { // 家長手機原本就是 readonly
+                el.readOnly = false;
+                el.disabled = false;
+                el.style.backgroundColor = ""; 
+            }
+        });
 
         if (val === "" || val === "new") {
             form.reset();
@@ -191,14 +201,16 @@
             btnSubmit.classList.remove('hidden');
             btnDelete.classList.add('hidden');
             btnUpdate.classList.add('hidden');
+            document.getElementById('status-display-area').classList.add('hidden');
             currentMode = "new";
             return;
         }
 
         currentMode = "old";
         const s = userData[val];
-        originalData = JSON.parse(JSON.stringify(s)); // 備份原始資料
+        originalData = JSON.parse(JSON.stringify(s)); 
         
+        // 填入資料
         document.getElementById('stuName').value = s.stuName || "";
         document.getElementById('stuPhone').value = s.stuPhone || "";
         document.getElementById('parName').value = s.parName || "";
@@ -218,12 +230,30 @@
         serverHeaders.forEach(h => { if (s[h.toString()]) dateSelect.value = h.toString(); });
 
         handleStudyTime(s.studyTime);
+        
+        // 處理狀態顯示
+        const currentStatus = s.status || "審核中";
         document.getElementById('status-display-area').classList.remove('hidden');
-        document.getElementById('status-box').innerText = s.status || "審核中";
+        document.getElementById('status-box').innerText = currentStatus;
 
-        btnSubmit.classList.add('hidden');
-        btnDelete.classList.remove('hidden');
-        btnUpdate.classList.add('hidden');
+        // --- 核心邏輯：判斷是否鎖死 ---
+        if (currentStatus === "已錄取" || currentStatus === "未錄取") {
+            // 1. 鎖死所有欄位
+            allInputs.forEach(el => {
+                if (el.tagName === "INPUT") el.readOnly = true;
+                if (el.tagName === "SELECT") el.disabled = true;
+                el.style.backgroundColor = "#eee"; // 灰底表示鎖定
+            });
+            // 2. 隱藏所有按鈕
+            btnSubmit.classList.add('hidden');
+            btnDelete.classList.add('hidden'); // 隱藏取消報名
+            btnUpdate.classList.add('hidden'); // 隱藏更新資料
+        } else {
+            // 審核中：顯示取消報名按鈕
+            btnSubmit.classList.add('hidden');
+            btnDelete.classList.remove('hidden');
+            btnUpdate.classList.add('hidden');
+        }
 
         if (s.qrcId) showQRCode(s.qrcId);
     }
