@@ -257,7 +257,7 @@ function detectChange() {
         }
     }
 
-    function deleteRecord() {
+function deleteRecord() {
         if (!confirm("確定要取消報名並刪除資料嗎？")) return;
         const payload = { 
             action: 'deleteUser', 
@@ -265,7 +265,11 @@ function detectChange() {
             stuName: document.getElementById('stuName').value
         };
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
-        .then(() => { alert("已刪除！"); location.reload(); });
+        .then(res => res.json()) // 加入這行等待回傳
+        .then(res => {
+            alert("已刪除！");
+            location.reload();
+        });
     }
 
     function updateRecord() {
