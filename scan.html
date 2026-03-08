@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyline 報到管理系統</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root { --primary: #2c3e50; --success: #27ae60; --warn: #f39c12; --danger: #e74c3c; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f3f5; margin: 0; padding: 15px; text-align: center; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); margin-top: 0; }
+        .config-box { margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: left; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        select { width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ddd; }
+        
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; border: 2px solid #ddd; }
+        
+        #result-card { margin-top: 20px; padding: 20px; border-radius: 10px; display: none; }
+        .success-bg { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .warn-bg { background: #fff3cd; color: #856404; border: 2px solid #ffeeba; }
+        .error-bg { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        
+        .stu-info { font-size: 20px; font-weight: bold; margin: 10px 0; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; background: var(--primary); color: white; font-size: 14px; }
+        
+        button { width: 100%; padding: 12px; margin-top: 15px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; background: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>報到管理系統</h2>
+    
+    <div class="config-box">
+        <label>1. 選擇今日報到場次</label>
+        <select id="courseDate">
+            <option value="20260315">2026-03-15</option>
+            <option value="20260322">2026-03-22</option>
+            <option value="20260329">2026-03-29</option>
+        </select>
+    </div>
+
+    <div id="reader"></div>
+
+    <div id="result-card">
+        <div id="result-title" style="font-weight: bold; font-size: 18px;"></div>
+        <div class="stu-info" id="stu-name"></div>
+        <div id="stu-detail"></div>
+        <div class="status-badge" id="stu-adstatus"></div>
+        <button onclick="resetScanner()">繼續掃描下一個</button>
+    </div>
+</div>
+
+<script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyg3uS15mMhbY87YnyMuM77ZateljVNpH3555EUYUv9iKInO35EMrina3wzir-AZMh5/exec";
+    let html5QrCode;
+
+    // 初始化掃描器
+    function initScanner() {
+        html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        
+        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+    }
+
+    function onScanSuccess(decodedText) {
+        // 暫停掃描以處理資料
+        html5QrCode.pause();
+        processCheckIn(decodedText);
+    }
+
+    function processCheckIn(qrcId) {
+        const date = document.getElementById('courseDate').value;
+        const card = document.getElementById('result-card');
+        
+        card.style.display = "block";
+        card.className = "warn-bg";
+        document.getElementById('result-title').innerText = "處理中...";
+        document.getElementById('stu-name').innerText = "通訊中...";
+        document.getElementById('stu-detail').innerText = "";
+        document.getElementById('stu-adstatus').innerText = "";
+
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'checkIn',
+                qrcId: qrcId,
+                courseDate: date
+            })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.result === 'success') {
+                card.className = "success-bg";
+                document.getElementById('result-title').innerText = "✓ 報到成功";
+                document.getElementById('stu-name').innerText = res.name;
+                document.getElementById('stu-detail').innerText = "項目：" + res.instrument;
+                document.getElementById('stu-adstatus').innerText = "錄取狀態：" + res.adStatus;
+                playTone(true);
+            } else if (res.result === 'already') {
+                card.className = "warn-bg";
+                document.getElementById('result-title').innerText = "！ 重複報到";
+                document.getElementById('stu-name').innerText = "此學員已完成報到";
+                playTone(false);
+            } else {
+                card.className = "error-bg";
+                document.getElementById('result-title').innerText = "✕ 報到失敗";
+                document.getElementById('stu-name').innerText = res.message || "無效憑證";
+                playTone(false);
+            }
+        })
+        .catch(err => {
+            alert("系統錯誤：" + err);
+            resetScanner();
+        });
+    }
+
+    function resetScanner() {
+        document.getElementById('result-card').style.display = "none";
+        html5QrCode.resume();
+    }
+
+    // 報到成功/失敗的音效回饋
+    function playTone(isSuccess) {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        if (isSuccess) {
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.1);
+        } else {
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.2);
+        }
+        
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    window.onload = initScanner;
+</script>
+
+</body>
+</html>
