@@ -38,14 +38,12 @@
 <div class="container">
     <h2>Skyline 報到管理系統</h2>
     
-    <div class="config-box">
-        <label>場次：</label>
-        <select id="courseDate" onchange="loadList()">
-            <option value="20260315">2026-03-15</option>
-            <option value="20260322">2026-03-22</option>
-            <option value="20260329">2026-03-29</option>
-        </select>
-    </div>
+<div class="config-box">
+    <label>場次：</label>
+    <select id="courseDate" onchange="loadList()">
+        <option value="">正在讀取場次...</option>
+    </select>
+</div>
 
     <div id="reader"></div>
 
@@ -81,11 +79,24 @@
     let html5QrCode;
     let allStudents = [];
 
-    // 初始化
-    window.onload = () => {
-        loadList(); // 先抓名單
-        initScanner();
-    };
+// 這是新的，直接貼上取代上面那段
+window.onload = () => {
+    // 1. 自動抓取日期欄位填入選單
+    fetch(`${GAS_URL}?action=getDates`)
+    .then(res => res.json())
+    .then(res => {
+        if(res.result === 'success') {
+            const select = document.getElementById('courseDate');
+            select.innerHTML = ""; // 清空舊的
+            res.dates.forEach(d => {
+                const opt = new Option(d, d);
+                select.add(opt);
+            });
+            loadList(); // 日期抓完後再抓名單
+        }
+    });
+    initScanner();
+};
 
     function initScanner() {
         html5QrCode = new Html5Qrcode("reader");
