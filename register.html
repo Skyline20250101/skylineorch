@@ -284,7 +284,7 @@ function detectChange() {
             city: document.getElementById('city').value,
             dist: document.getElementById('dist').value,
             address: document.getElementById('address').value,
-            source: document.getElementById('source').value
+            source: document.getElementById('source').value,
             courseDate: document.getElementById('courseDate').value
         };
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
