@@ -187,16 +187,18 @@ function autoFill(val) {
         const qrResult = document.getElementById('qr-result');
         const dateSelect = document.getElementById('courseDate');
 
+        // 如果選的是「請選擇」或「新增學員」
         if (val === "" || val === "new") {
             document.getElementById('reg-form').reset();
             document.getElementById('parPhone').value = document.getElementById('search-phone').value;
             btn.classList.remove('hidden');
             statusArea.classList.add('hidden');
             qrResult.classList.add('hidden');
-            dateSelect.selectedIndex = 0; // 重置日期選單
+            dateSelect.selectedIndex = 0; // 只有這時候才需要歸零
             return;
         }
 
+        // --- 以下是選取「舊生」的邏輯 ---
         const s = userData[val];
         document.getElementById('stuName').value = s.stuName || "";
         document.getElementById('stuPhone').value = s.stuPhone || "";
@@ -211,20 +213,20 @@ function autoFill(val) {
         document.getElementById('dist').value = s.dist || "";
         document.getElementById('address').value = s.address || "";
         document.getElementById('source').value = s.source || "FB粉絲專頁";
+
+        // 1. 先把日期選單重置為「請選擇」，確保舊的選取狀態清空
+        dateSelect.selectedIndex = 0; 
         
-        // --- 修正後的日期對齊邏輯 ---
-        // dateSelect.selectedIndex = 0; 先預設回「請選擇」
-        
-        // 遍歷所有標題，尋找符合 8 位數字且該學生在該欄位有值的日期
+        // 2. 遍歷標題，尋找該學生有資料的日期欄位
         serverHeaders.forEach(h => {
             const headerStr = h.toString();
-            // 判斷是否為日期欄位，且該生在該欄位是否有內容 (不論內容是 QRCID 或是「已報名」)
+            // 如果欄位名稱是 8 位數字，且該學員在此欄位有資料 (不論是 QRCID 或其他註記)
             if (/^\d{8}$/.test(headerStr) && s[headerStr]) {
-                dateSelect.value = headerStr;
+                dateSelect.value = headerStr; // 這裡才會正式選中該日期
             }
         });
-        // --------------------------
 
+        // 3. 其他顯示邏輯
         handleStudyTime(s.studyTime);
         statusArea.classList.remove('hidden');
         document.getElementById('status-box').innerText = s.adStatus || "審核中";
