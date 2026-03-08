@@ -1,33 +1,70 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skyline Orchestra</title>
-<style>
-body{
-font-family:Arial;
-text-align:center;
-background:#000;
-color:#fff;
-padding-top:100px;
-}
-h1{
-font-size:48px;
-}
-p{
-font-size:20px;
-}
-</style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyline 天際綫藝術學院</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
 
+        .splash-container {
+            text-align: center;
+        }
+
+        .splash-img {
+            max-width: 90%;
+            max-height: 85vh;
+            border-radius: 15px; /* 增加一點圓角感 */
+            object-fit: contain;
+            /* 動態效果：3.5秒完成淡入與淡出 */
+            animation: fadeInOut 3.5s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.98); }
+            20% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.02); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-family: "Microsoft JhengHei", sans-serif;
+            color: #7f8c8d;
+            letter-spacing: 2px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+    </style>
+</head>
 <body>
 
-<h1>Skyline Orchestra</h1>
+    <div class="splash-container">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1frbkbRW36IOSvrx2ckkag6ALUV2AaDll" class="splash-img">
+        <div class="loading-text">進入系統中...</div>
+    </div>
 
-<p>官方網站建置中</p>
-
-<p>Official website coming soon</p>
+    <script>
+        // 設定 3.5 秒後自動跳轉
+        // 請確保你的報名頁面檔案名稱是 register.html，如果不是請修改下方引號內的名稱
+        setTimeout(function() {
+            window.location.href = "register.html"; 
+        }, 3500);
+    </script>
 
 </body>
 </html>
