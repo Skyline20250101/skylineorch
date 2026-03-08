@@ -99,19 +99,32 @@
     }
 
     // 抓取雲端名單
-    function loadList() {
-        const date = document.getElementById('courseDate').value;
-        document.getElementById('stats-info').innerText = "正在更新名單...";
-        
-        fetch(`${GAS_URL}?action=getList&courseDate=${date}`) // 注意：GET 請求需要 GAS 端對應
-        .then(res => res.json())
-        .then(res => {
-            if (res.result === 'success') {
-                allStudents = res.data;
-                renderTable();
-            }
-        });
-    }
+// 修改 Scan.html 裡的 loadList 函數
+function loadList() {
+    const date = document.getElementById('courseDate').value;
+    document.getElementById('stats-info').innerText = "正在更新名單...";
+    
+    // 加上 timestamp 避免瀏覽器快取舊資料
+    const fetchUrl = `${GAS_URL}?action=getList&courseDate=${date}&t=${new Date().getTime()}`;
+    
+    fetch(fetchUrl, { method: 'GET' })
+    .then(res => {
+        if (!res.ok) throw new Error('網路回應不正確');
+        return res.json();
+    })
+    .then(res => {
+        if (res.result === 'success') {
+            allStudents = res.data;
+            renderTable();
+        } else {
+            document.getElementById('stats-info').innerText = "載入失敗：" + res.message;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById('stats-info').innerText = "連線錯誤，請檢查部署 ID";
+    });
+}
 
     // 渲染表格
     function renderTable() {
