@@ -213,7 +213,7 @@ function autoFill(val) {
         document.getElementById('source').value = s.source || "FB粉絲專頁";
         
         // --- 修正後的日期對齊邏輯 ---
-        dateSelect.selectedIndex = 0; // 先預設回「請選擇」
+        // dateSelect.selectedIndex = 0; 先預設回「請選擇」
         
         // 遍歷所有標題，尋找符合 8 位數字且該學生在該欄位有值的日期
         serverHeaders.forEach(h => {
