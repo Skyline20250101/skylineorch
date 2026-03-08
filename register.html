@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyline 天際線藝術學院 - 招募報名系統</title>
+    <script src="https://unpkg.com/pinyin-pro"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root { --primary: #2c3e50; --accent: #27ae60; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: var(--primary); }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #34495e; }
+        .btn-line { background: #00b900; }
+        .btn-line:hover { background: #009900; }
+        .hidden { display: none; }
+        #student-selector { background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #3498db; }
+        .info-msg { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 14px; display: none; }
+        #qr-result { text-align: center; }
+        #qrcode { display: inline-block; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>招募報名系統</h2>
+
+    <div id="step-1">
+        <div class="form-group">
+            <label>請輸入家長手機號碼</label>
+            <input type="tel" id="search-phone" placeholder="例如：0912345678" maxlength="10">
+            <button onclick="checkUser()">開始報名</button>
+        </div>
+    </div>
+
+    <div id="student-selector" class="hidden">
+        <label>偵測到舊資料，請選擇報名學員：</label>
+        <select id="exist-student-list" onchange="autoFill(this.value)">
+            <option value="new">-- 新增學員 --</option>
+        </select>
+    </div>
+
+    <form id="reg-form" class="hidden">
+        <div class="form-group">
+            <label>學生姓名 *</label>
+            <input type="text" id="stuName" required>
+        </div>
+        <div class="form-group">
+            <label>學生手機 (選填)</label>
+            <input type="tel" id="stuPhone">
+        </div>
+        <div class="form-group">
+            <label>家長姓名 *</label>
+            <input type="text" id="parName" required>
+        </div>
+        <div class="form-group">
+            <label>家長手機</label>
+            <input type="text" id="parPhone" readonly style="background: #eee;">
+        </div>
+        <div class="form-group">
+            <label>就讀學校 *</label>
+            <input type="text" id="school" required>
+        </div>
+        <div class="form-group">
+            <label>就讀年級 *</label>
+            <select id="grade" required>
+                <option value="小三">小三</option><option value="小四">小四</option>
+                <option value="小五">小五</option><option value="小六">小六</option>
+                <option value="國一">國一</option><option value="國二">國二</option>
+                <option value="國三">國三</option><option value="高一">高一</option>
+                <option value="高二">高二</option><option value="高三">高三</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>報名樂器 *</label>
+            <input type="text" id="instrument" required placeholder="例如：小提琴">
+        </div>
+        <div class="form-group">
+            <label>學習時間 *</label>
+            <select id="studyTime" onchange="handleStudyTime(this.value)" required>
+                <option value="零基礎">零基礎</option>
+                <option value="0~1年">0~1年</option><option value="1~2年">1~2年</option>
+                <option value="2~3年">2~3年</option><option value="3~4年">3~4年</option>
+                <option value="4~5年">4~5年</option><option value="5~10年">5~10年</option>
+                <option value="10年以上">10年以上</option>
+            </select>
+            <div id="zero-msg" class="info-msg">
+                您好：我們將會為您安排學習課程，請靜待樂團老師電話聯繫，或使用官方LINE做詢問。
+            </div>
+        </div>
+        <div class="form-group" id="song-group" style="display:none;">
+            <label>自選曲目 *</label>
+            <input type="text" id="song">
+        </div>
+
+        <div class="form-group">
+            <label>通訊地址 (全台)</label>
+            <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                <select id="city" onchange="updateDist(this.value)" required></select>
+                <select id="dist" required></select>
+            </div>
+            <input type="text" id="address" placeholder="詳細地址" required>
+        </div>
+
+        <div class="form-group">
+            <label>報名日期場次 *</label>
+            <select id="courseDate" required>
+                <option value="20260315">2026-03-15</option>
+                <option value="20260322">2026-03-22</option>
+                <option value="20260329">2026-03-29</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>訊息來源</label>
+            <select id="source">
+                <option value="FB粉絲專頁">FB粉絲專頁</option>
+                <option value="Instagram">Instagram</option>
+                <option value="親友介紹">親友介紹</option>
+                <option value="搜尋引擎">搜尋引擎</option>
+            </select>
+        </div>
+
+        <button type="button" onclick="submitForm()">確認報名並產生憑證</button>
+    </form>
+
+    <div id="qr-result" class="hidden">
+        <h3 style="color: var(--accent);">報名成功！</h3>
+        <p>請截圖保存下方報到憑證：</p>
+        <div id="qrcode"></div>
+        <p id="display-qrcid" style="font-size: 12px; color: #999;"></p>
+        <button onclick="downloadQR()">下載憑證圖片</button>
+        <button class="btn-line" onclick="contactLine()">開啟官方 LINE 回報</button>
+    </div>
+</div>
+
+<script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyg3uS15mMhbY87YnyMuM77ZateljVNpH3555EUYUv9iKInO35EMrina3wzir-AZMh5/exec";
+    let userData = [];
+    const twData = {"台北市":["中正區","大同區","中山區","松山區","大安區","萬華區","信義區","士林區","北投區","內湖區","南港區","文山區"],"新北市":["萬里區","金山區","板橋區","汐止區","深坑區","石碇區","瑞芳區","平溪區","雙溪區","貢寮區","新店區","坪林區","烏來區","永和區","中和區","土城區","三峽區","樹林區","鶯歌區","三重區","蘆洲區","五股區","泰山區","林口區","八里區","淡水區","三芝區","石門區"],"台中市":["中區","東區","南區","西區","北區","北屯區","西屯區","南屯區","太平區","大里區","霧峰區","烏日區","豐原區","後里區","石岡區","東勢區","和平區","新社區","潭子區","大雅區","神岡區","大肚區","沙鹿區","龍井區","梧棲區","清水區","大甲區","外埔區","大安區"],"桃園市":["中壢區","桃園區","龜山區","八德區","內壢區","蘆竹區","大園區","大溪區","龍潭區","平鎮區","楊梅區","觀音區","新屋區","復興區"],"台南市":["中西區","東區","南區","北區","安平區","安南區","永康區","歸仁區","新化區","左鎮區","玉井區","楠西區","南化區","仁德區","關廟區","龍崎區","官田區","麻豆區","佳里區","西港區","七股區","將軍區","學甲區","北門區","新營區","後壁區","白河區","東山區","六甲區","下營區","柳營區","鹽水區","善化區","大內區","山上區","新市區","安定區"],"高雄市":["新興區","前金區","苓雅區","鹽埕區","鼓山區","旗津區","前鎮區","三民區","楠梓區","小港區","左營區","仁武區","大社區","岡山區","路竹區","阿蓮區","田寮區","燕巢區","橋頭區","梓官區","彌陀區","永安區","湖內區","鳳山區","大寮區","林園區","鳥松區","大樹區","旗山區","美濃區","六龜區","內門區","杉林區","甲仙區","桃源區","那瑪夏區","茂林區","茄萣區"]}; // 僅列六都範例，完整程式會包含全台
+
+    window.onload = () => {
+        const citySelect = document.getElementById('city');
+        Object.keys(twData).forEach(c => citySelect.add(new Option(c, c)));
+        updateDist(citySelect.value);
+    };
+
+    function updateDist(city) {
+        const distSelect = document.getElementById('dist');
+        distSelect.innerHTML = "";
+        twData[city].forEach(d => distSelect.add(new Option(d, d)));
+    }
+
+    function checkUser() {
+        const phone = document.getElementById('search-phone').value;
+        if (phone.length < 10) return alert("請輸入正確手機號碼");
+        
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'checkUser', parentPhone: phone })
+        }).then(res => res.json()).then(res => {
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('reg-form').classList.remove('hidden');
+            document.getElementById('parPhone').value = phone;
+            
+            if (res.exists) {
+                userData = res.students;
+                const selector = document.getElementById('student-selector');
+                const list = document.getElementById('exist-student-list');
+                selector.classList.remove('hidden');
+                userData.forEach((s, i) => list.add(new Option(s.stuName, i)));
+            }
+        });
+    }
+
+    function autoFill(val) {
+        if (val === 'new') {
+            document.getElementById('reg-form').reset();
+            document.getElementById('parPhone').value = document.getElementById('search-phone').value;
+            return;
+        }
+        const s = userData[val];
+        document.getElementById('stuName').value = s.stuName;
+        document.getElementById('stuPhone').value = s.stuPhone;
+        document.getElementById('parName').value = s.parName;
+        document.getElementById('school').value = s.school;
+        document.getElementById('city').value = s.city;
+        updateDist(s.city);
+        document.getElementById('dist').value = s.dist;
+        document.getElementById('address').value = s.address;
+    }
+
+    function handleStudyTime(val) {
+        const songGroup = document.getElementById('song-group');
+        const zeroMsg = document.getElementById('zero-msg');
+        if (val === '零基礎') {
+            songGroup.style.display = 'none';
+            zeroMsg.style.display = 'block';
+        } else {
+            songGroup.style.display = 'block';
+            zeroMsg.style.display = 'none';
+        }
+    }
+
+    function submitForm() {
+        const name = document.getElementById('stuName').value;
+        const date = document.getElementById('courseDate').value;
+        if (!name) return alert("請填寫姓名");
+
+        // 自動拼音產生 QRC ID
+        const pinyinName = pinyinPro.pinyin(name, { toneType: 'none', type: 'array' }).join('');
+        const qrcId = `${pinyinName}-${date}-${Math.floor(Math.random()*1000)}`;
+
+        const payload = {
+            action: 'register',
+            stuName: name,
+            stuPhone: document.getElementById('stuPhone').value,
+            parName: document.getElementById('parName').value,
+            parentPhone: document.getElementById('parPhone').value,
+            school: document.getElementById('school').value,
+            grade: document.getElementById('grade').value,
+            instrument: document.getElementById('instrument').value,
+            studyTime: document.getElementById('studyTime').value,
+            song: document.getElementById('song').value,
+            city: document.getElementById('city').value,
+            dist: document.getElementById('dist').value,
+            address: document.getElementById('address').value,
+            source: document.getElementById('source').value,
+            courseDate: date,
+            qrcId: qrcId
+        };
+
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(res => res.json()).then(res => {
+            if (res.result === 'success') {
+                document.getElementById('reg-form').classList.add('hidden');
+                document.getElementById('student-selector').classList.add('hidden');
+                document.getElementById('qr-result').classList.remove('hidden');
+                document.getElementById('display-qrcid').innerText = "憑證編號：" + qrcId;
+                new QRCode(document.getElementById("qrcode"), { text: qrcId, width: 200, height: 200 });
+            }
+        });
+    }
+
+    function downloadQR() {
+        const img = document.querySelector('#qrcode img');
+        const link = document.createElement('a');
+        link.href = img.src;
+        link.download = `Skyline_憑證_${document.getElementById('stuName').value}.png`;
+        link.click();
+    }
+
+    function contactLine() {
+        const name = document.getElementById('stuName').value;
+        const date = document.getElementById('courseDate').value;
+        const msg = encodeURIComponent(`您好，我是 ${name} 的家長，已完成 ${date} 招募報名，請協助確認。`);
+        window.location.href = `https://line.me/R/oaMessage/@skyline_art/?${msg}`; // 請將 @skyline_art 換成您的 ID
+    }
+</script>
+
+</body>
+</html>
