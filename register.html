@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skyline 天際綫藝術學院 - 團員招募報名系統</title>
+    <title>Skyline 天際綫藝術學院 - 報名系統</title>
     <script src="https://unpkg.com/pinyin-pro"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --primary: #2c3e50; --accent: #27ae60; --danger: #e74c3c; --info: #3498db; }
+        :root { --primary: #2c3e50; --accent: #27ae60; --danger: #e74c3c; --info: #3498db; --warning: #f39c12; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: #f4f7f6; margin: 0; padding: 15px; color: var(--primary); }
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
@@ -17,6 +17,10 @@
         input[readonly] { background-color: #eee; cursor: not-allowed; }
         button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 10px; font-weight: bold; }
         button:hover { background: #34495e; }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-warning { background: var(--warning); }
+        .btn-warning:hover { background: #e67e22; }
         .hidden { display: none; }
         #student-selector { background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid var(--info); }
         .status-box { background: #fff5f5; border: 2px solid var(--danger); color: var(--danger); padding: 12px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 18px; margin: 10px 0; }
@@ -49,58 +53,50 @@
     </div>
 
     <form id="reg-form" class="hidden">
-        <div class="form-group"><label>學生姓名 *</label><input type="text" id="stuName" required></div>
-        <div class="form-group"><label>學生手機 (選填)</label><input type="tel" id="stuPhone"></div>
+        <div class="form-group"><label>學生姓名 *</label><input type="text" id="stuName" required oninput="detectChange()"></div>
+        <div class="form-group"><label>學生手機 (選填)</label><input type="tel" id="stuPhone" oninput="detectChange()"></div>
         <hr>
-        <div class="form-group"><label>家長姓名 *</label><input type="text" id="parName" required></div>
+        <div class="form-group"><label>家長姓名 *</label><input type="text" id="parName" required oninput="detectChange()"></div>
         <div class="form-group"><label>家長手機</label><input type="text" id="parPhone" readonly></div>
-        <div class="form-group"><label>就讀學校 *</label><input type="text" id="school" required></div>
+        <div class="form-group"><label>就讀學校 *</label><input type="text" id="school" required oninput="detectChange()"></div>
         <div class="form-group">
             <label>就讀年級 *</label>
-            <select id="grade" required>
+            <select id="grade" required onchange="detectChange()">
                 <option value="">-- 請選擇 --</option>
                 <option value="小三">小三</option><option value="小四">小四</option><option value="小五">小五</option><option value="小六">小六</option>
                 <option value="國一">國一</option><option value="國二">國二</option><option value="國三">國三</option>
                 <option value="高一">高一</option><option value="高二">高二</option><option value="高三">高三</option>
             </select>
         </div>
-        <div class="form-group"><label>報名樂器 *</label><input type="text" id="instrument" required placeholder="例如：小提琴"></div>
+        <div class="form-group"><label>報名樂器 *</label><input type="text" id="instrument" required oninput="detectChange()"></div>
         <div class="form-group">
             <label>學習時間 *</label>
-            <select id="studyTime" onchange="handleStudyTime(this.value)" required>
+            <select id="studyTime" onchange="handleStudyTime(this.value); detectChange();" required>
                 <option value="">-- 請選擇 --</option>
                 <option value="零基礎">零基礎</option>
                 <option value="0~1年">0~1年</option><option value="1~2年">1~2年</option><option value="2~3年">2~3年</option>
                 <option value="3~4年">3~4年</option><option value="4~5年">4~5年</option><option value="5~10年">5~10年</option>
                 <option value="10年以上">10年以上</option>
             </select>
-            <div id="zero-msg" class="info-msg">
-                您好：我們將會為您安排學習課程，請靜待樂團老師電話聯繫。
-            </div>
+            <div id="zero-msg" class="info-msg">您好：我們將會為您安排學習課程，請靜待樂團老師電話聯繫。</div>
         </div>
         <div class="form-group" id="song-group" style="display:none;">
             <label>自選曲目 *</label>
-            <input type="text" id="song">
+            <input type="text" id="song" oninput="detectChange()">
         </div>
 
         <div class="form-group">
             <label>通訊地址 *</label>
             <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-                <select id="city" onchange="updateDist(this.value)" required>
-                    <option value="">-- 請選擇縣市 --</option>
-                </select>
-                <select id="dist" required>
-                    <option value="">-- 請選擇區域 --</option>
-                </select>
+                <select id="city" onchange="updateDist(this.value); detectChange();" required></select>
+                <select id="dist" required onchange="detectChange()"></select>
             </div>
-            <input type="text" id="address" placeholder="詳細地址" required>
+            <input type="text" id="address" placeholder="詳細地址" required oninput="detectChange()">
         </div>
 
         <div class="form-group">
             <label>報名日期場次 *</label>
-            <select id="courseDate" required>
-                <option value="">-- 請選擇 --</option>
-            </select>
+            <select id="courseDate" required onchange="detectChange()"></select>
         </div>
 
         <div id="status-display-area" class="hidden">
@@ -110,7 +106,7 @@
 
         <div class="form-group">
             <label>訊息來源</label>
-            <select id="source">
+            <select id="source" onchange="detectChange()">
                 <option value="FB粉絲專頁">FB粉絲專頁</option>
                 <option value="Instagram">Instagram</option>
                 <option value="親友介紹">親友介紹</option>
@@ -119,6 +115,8 @@
         </div>
 
         <button type="button" id="btn-submit" onclick="submitForm()">確認報名並產生憑證</button>
+        <button type="button" id="btn-delete" class="btn-danger hidden" onclick="deleteRecord()">取消報名</button>
+        <button type="button" id="btn-update" class="btn-warning hidden" onclick="updateRecord()">更新資料</button>
     </form>
 
     <div id="qr-result" class="hidden">
@@ -126,16 +124,18 @@
         <p>請截圖保存下方報到憑證：</p>
         <div id="qrcode"></div>
         <p id="display-qrcid" style="font-size: 12px; color: #999;"></p>
-        <button onclick="downloadQR()" style="background:#7f8c8d;">下載憑證圖片</button>
+        <button onclick="downloadQRWithText()" style="background:#7f8c8d;">下載憑證圖片</button>
     </div>
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyg3uS15mMhbY87YnyMuM77ZateljVNpH3555EUYUv9iKInO35EMrina3wzir-AZMh5/exec";
+    const GAS_URL = "您的GAS網址";
     let userData = [];
     let serverHeaders = [];
+    let currentMode = "new"; // 'new' or 'old'
+    let originalData = {};
 
-    const twData = {"台北市":["中正區","大同區","中山區","松山區","大安區","萬華區","信義區","士林區","北投區","內湖區","南港區","文山區"],"新北市":["板橋區","三重區","中和區","永和區","新莊區","新店區","樹林區","鶯歌區","三峽區","淡水區","汐止區","瑞芳區","土城區","蘆洲區","五股區","泰山區","林口區","深坑區","石碇區","坪林區","三芝區","石門區","八里區","平溪區","雙溪區","貢寮區","金山區","萬里區","烏來區"],"桃園市":["桃園區","中壢區","大溪區","楊梅區","蘆竹區","大園區","龜山區","八德區","龍潭區","平鎮區","新屋區","觀音區","復興區"],"台中市":["中區","東區","南區","西區","北區","北屯區","西屯區","南屯區","太平區","大里區","霧峰區","烏日區","豐原區","後里區","石岡區","東勢區","和平區","新社區","潭子區","大雅區","神岡區","大肚區","沙鹿區","龍井區","梧棲區","清水區","大甲區","外埔區","大安區"],"台南市":["中西區","東區","南區","北區","安平區","安南區","永康區","歸仁區","新化區","左鎮區","玉井區","楠西區","南化區","仁德區","關廟區","龍崎區","官田區","麻豆區","佳里區","西港區","七股區","將軍區","學甲區","北門區","新營區","後壁區","白河區","東山區","六甲區","下營區","柳營區","鹽水區","善化區","大內區","山上區","新市區","安定區"],"高雄市":["新興區","前金區","苓雅區","鹽埕區","鼓山區","旗津區","前鎮區","三民區","楠梓區","小港區","左營區","仁武區","大社區","岡山區","路竹區","阿蓮區","田寮區","燕巢區","橋頭區","梓官區","彌陀區","永安區","湖內區","鳳山區","大寮區","林園區","鳥松區","大樹區","旗山區","美濃區","六龜區","內門區","杉林區","甲仙區","桃源區","那瑪夏區","茂林區","茄萣區"],"基隆市":["仁愛區","信義區","中正區","中山區","安樂區","暖暖區","七堵區"],"新竹市":["東區","北區","香山區"],"新竹縣":["竹北市","竹東鎮","新埔鎮","關西鎮","湖口鄉","新豐鄉","芎林鄉","橫山鄉","北埔鄉","寶山鄉","峨眉鄉","尖石鄉","五峰鄉"],"苗栗縣":["苗栗市","頭份市","竹南鎮","後龍鎮","通霄鎮","苑裡鎮","造橋鄉","西湖鄉","頭屋鄉","公館鄉","銅鑼鄉","三義鄉","大湖鄉","獅潭鄉","三灣鄉","南庄鄉","卓蘭鎮","泰安鄉"],"彰化縣":["彰化市","員林市","和美鎮","鹿港鎮","溪湖鎮","二林鎮","田中鎮","北斗鎮","花壇鄉","芬園鄉","大村鄉","永靖鄉","伸港鄉","線西鄉","福興鄉","秀水鄉","埔心鄉","埔鹽鄉","大城鄉","芳苑鄉","竹塘鄉","溪州鄉","埤頭鄉","二水鄉","田尾鄉","社頭鄉"],"南投縣":["南投市","埔里鎮","草屯鎮","竹山鎮","集集鎮","名間鄉","鹿谷鄉","中寮鄉","魚池鄉","國姓鄉","水里鄉","信義鄉","仁愛鄉"],"雲林縣":["斗六市","斗南鎮","虎尾鎮","西螺鎮","土庫鎮","北港鎮","古坑鄉","大埤鄉","莿桐鄉","林內鄉","二崙鄉","崙背鄉","麥寮鄉","東勢鄉","褒忠鄉","台西鄉","元長鄉","四湖鄉","口湖鄉","水林鄉"],"嘉義市":["東區","西區"],"嘉義縣":["太保市","朴子市","布袋鎮","大林鎮","民雄鄉","溪口鄉","新港鄉","六腳鄉","東石鄉","義竹鄉","鹿草鄉","水上鄉","中埔鄉","竹崎鄉","梅山鄉","番路鄉","大埔鄉","阿里山鄉"],"屏東縣":["屏東市","潮州鎮","東港鎮","恆春鎮","萬丹鄉","長治鄉","麟洛鄉","九如鄉","里港鄉","鹽埔鄉","高樹鄉","萬巒鄉","內埔鄉","竹田鄉","新埤鄉","枋寮鄉","新園鄉","崁頂鄉","林邊鄉","南州鄉","佳冬鄉","琉球鄉","車城鄉","滿州鄉","枋山鄉","三地門鄉","霧台鄉","瑪家鄉","泰武鄉","來義鄉","春日鄉","獅子鄉","牡丹鄉"],"宜蘭縣":["宜蘭市","羅東鎮","蘇澳鎮","頭城鎮","礁溪鄉","壯圍鄉","員山鄉","冬山鄉","五結鄉","三星鄉","大同鄉","南澳鄉"],"花蓮縣":["花蓮市","鳳林鎮","玉里鎮","新城鄉","吉安鄉","壽豐鄉","光復鄉","豐濱鄉","瑞穗鄉","富里鄉","秀林鄉","萬榮鄉","卓溪鄉"],"台東縣":["台東市","成功鎮","關山鎮","卑南鄉","鹿野鄉","池上鄉","東河鄉","長濱鄉","太麻里鄉","大武鄉","綠島鄉","海端鄉","延平鄉","金峰鄉","達仁鄉","蘭嶼鄉"],"澎湖縣":["馬公市","湖西鄉","白沙鄉","西嶼鄉","望安鄉","七美鄉"],"金門縣":["金城鎮","金湖鎮","金沙鎮","金寧鄉","烈嶼鄉","烏坵鄉"],"連江縣":["南竿鄉","北竿鄉","莒光鄉","東引鄉"]};
+    const twData = {"台北市":["中正區","大同區","中山區","松山區","大安區","萬華區","信義區","士林區","北投區","內湖區","南港區","文山區"],"新北市":["板橋區","三重區","中和區","永和區","新莊區","新店區","樹林區","鶯歌區","三峽區","淡水區","汐止區","瑞芳區","土城區","蘆洲區","五股區","泰山區","林口區","深坑區","石碇區","坪林區","三芝區","石門區","八里區","平溪區","雙溪區","貢寮區","金山區","萬里區","烏來區"],"桃園市":["桃園區","中壢區","大溪區","楊梅區","蘆竹區","大園區","龜山區","八德區","龍潭區","平鎮區","新屋區","觀音區","復興區"],"台中市":["中區","東區","南區","西區","北區","北屯區","西屯區","南屯區","太平區","大里區","霧峰區","烏日區","豐原區","後里區","石岡區","東勢區","和平區","新社區","潭子區","大雅區","神岡區","大肚區","沙鹿區","龍井區","梧棲區","清水區","大甲區","外埔區","大安區"],"台南市":["中西區","東區","南區","北區","安平區","安南區","永康區","歸仁區","新化區","左鎮區","玉井區","楠西區","南化區","仁德區","關廟區","龍崎區","官田區","麻豆區","佳里區","西港區","七股區","將軍區","學甲區","北門區","新營區","後壁區","白河區","東山區","六甲區","下營區","柳營區","鹽水區","善化區","大內區","山上區","新市區","安定區"],"高雄市":["新興區","前金區","苓雅區","鹽埕區","鼓山區","旗津區","前鎮區","三民區","楠梓區","小港區","左營區","仁武區","大社區","岡山區","路竹區","阿蓮區","田寮區","燕巢區","橋頭區","梓官區","彌陀區","永安區","湖內區","鳳山區","大寮區","林園區","鳥松區","大樹區","旗山區","美濃區","六龜區","內門區","杉林區","甲仙區","桃源區","那瑪夏區","茂林區","茄萣區"],"基隆市":["仁愛區","信義區","中正區","中山區","安樂區","暖暖區","七堵區"],"新竹市":["東區","北區","香山區"],"新竹縣":["竹北市","竹東鎮","新埔鎮","關西鎮","湖口鄉","新豐鄉","芎林鄉","橫山鄉","北埔鄉","寶山鄉","峨眉鄉","尖石鄉","五峰鄉"],"苗栗縣":["苗栗市","頭份市","竹南鎮","後龍鎮","通霄鎮","苑裡鎮","造橋鄉","西湖鄉","頭屋鄉","公館鄉","銅鑼鄉","三義鄉","大湖鄉","獅潭鄉","三灣鄉","南庄鄉","卓蘭鎮","泰安鄉"],"彰化縣":["彰化市","員林市","和美鎮","鹿港鎮","溪湖鎮","二林鎮","田中鎮","北斗鎮","花壇鄉","芬園鄉","大村鄉","永靖鄉","伸港鄉","線西鄉","福興鄉","秀水鄉","埔心鄉","埔鹽鄉","大城鄉","芳苑鄉","竹塘鄉","溪州鄉","埤頭鄉","二水鄉","田尾鄉","社頭鄉"],"南投縣":["南投市","埔里鎮","草屯鎮","竹山鎮","集集鎮","名間鄉","鹿谷鄉","中寮鄉","魚池鄉","國姓鄉","水里鄉","信義鄉","仁愛鄉"],"雲林縣":["斗六市","斗南鎮","虎尾鎮","西羅鎮","土庫鎮","北港鎮","古坑鄉","大埤鄉","莿桐鄉","林內鄉","二崙鄉","崙背鄉","麥寮鄉","東勢鄉","褒忠鄉","台西鄉","元長鄉","四湖鄉","口湖鄉","水林鄉"],"嘉義市":["東區","西區"],"嘉義縣":["太保市","朴子市","布袋鎮","大林鎮","民雄鄉","溪口鄉","新港鄉","六腳鄉","東石鄉","義竹鄉","鹿草鄉","水上鄉","中埔鄉","竹崎鄉","梅山鄉","番路鄉","大埔鄉","阿里山鄉"],"屏東縣":["屏東市","潮州鎮","東港鎮","恆春鎮","萬丹鄉","長治鄉","麟洛鄉","九如鄉","里港鄉","鹽埔鄉","高樹鄉","萬巒鄉","內埔鄉","竹田鄉","新埤鄉","枋寮鄉","新園鄉","崁頂鄉","林邊鄉","南州鄉","佳冬鄉","琉球鄉","車城鄉","滿州鄉","枋山鄉","三地門鄉","霧台鄉","瑪家鄉","泰武鄉","來義鄉","春日鄉","獅子鄉","牡丹鄉"],"宜蘭縣":["宜蘭市","羅東鎮","蘇澳鎮","頭城鎮","礁溪鄉","壯圍鄉","員山鄉","冬山鄉","五結鄉","三星鄉","大同鄉","南澳鄉"],"花蓮縣":["花蓮市","鳳林鎮","玉里鎮","新城鄉","吉安鄉","壽豐鄉","光復鄉","豐濱鄉","瑞穗鄉","富里鄉","秀林鄉","萬榮鄉","卓溪鄉"],"台東縣":["台東市","成功鎮","關山鎮","卑南鄉","鹿野鄉","池上鄉","東河鄉","長濱鄉","太麻里鄉","大武鄉","綠島鄉","海端鄉","延平鄉","金峰鄉","達仁鄉","蘭嶼鄉"],"澎湖縣":["馬公市","湖西鄉","白沙鄉","西嶼鄉","望安鄉","七美鄉"],"金門縣":["金城鎮","金湖鎮","金沙鎮","金寧鄉","烈嶼鄉","烏坵鄉"],"連江縣":["南竿鄉","北竿鄉","莒光鄉","東引鄉"]};
 
     window.onload = () => {
         const citySelect = document.getElementById('city');
@@ -162,44 +162,42 @@
             document.getElementById('step-1').classList.add('hidden');
             document.getElementById('reg-form').classList.remove('hidden');
             document.getElementById('parPhone').value = phone;
-
             serverHeaders = res.headers || [];
-            if (res.headers) {
-                const dateSelect = document.getElementById('courseDate');
-                dateSelect.innerHTML = '<option value="">-- 請選擇 --</option>';
-                res.headers.forEach(h => {
-                    if (/^\d{8}$/.test(h.toString())) dateSelect.add(new Option(h, h));
-                });
-            }
+            
+            const dateSelect = document.getElementById('courseDate');
+            dateSelect.innerHTML = '<option value="">-- 請選擇 --</option>';
+            serverHeaders.forEach(h => { if (/^\d{8}$/.test(h.toString())) dateSelect.add(new Option(h, h)); });
 
             if (res.exists) {
                 userData = res.students;
                 document.getElementById('student-selector').classList.remove('hidden');
                 const list = document.getElementById('exist-student-list');
+                list.innerHTML = '<option value="">-- 請選擇 --</option><option value="new">-- 新增學員 --</option>';
                 userData.forEach((s, i) => list.add(new Option(s.stuName, i)));
             }
         });
     }
 
-function autoFill(val) {
-        const btn = document.getElementById('btn-submit');
-        const statusArea = document.getElementById('status-display-area');
-        const qrResult = document.getElementById('qr-result');
-        const dateSelect = document.getElementById('courseDate');
+    function autoFill(val) {
+        const form = document.getElementById('reg-form');
+        const btnSubmit = document.getElementById('btn-submit');
+        const btnDelete = document.getElementById('btn-delete');
+        const btnUpdate = document.getElementById('btn-update');
 
-        // 如果選的是「請選擇」或「新增學員」
         if (val === "" || val === "new") {
-            document.getElementById('reg-form').reset();
+            form.reset();
             document.getElementById('parPhone').value = document.getElementById('search-phone').value;
-            btn.classList.remove('hidden');
-            statusArea.classList.add('hidden');
-            qrResult.classList.add('hidden');
-            dateSelect.selectedIndex = 0; // 只有這時候才需要歸零
+            btnSubmit.classList.remove('hidden');
+            btnDelete.classList.add('hidden');
+            btnUpdate.classList.add('hidden');
+            currentMode = "new";
             return;
         }
 
-        // --- 以下是選取「舊生」的邏輯 ---
+        currentMode = "old";
         const s = userData[val];
+        originalData = JSON.parse(JSON.stringify(s)); // 備份原始資料
+        
         document.getElementById('stuName').value = s.stuName || "";
         document.getElementById('stuPhone').value = s.stuPhone || "";
         document.getElementById('parName').value = s.parName || "";
@@ -214,45 +212,82 @@ function autoFill(val) {
         document.getElementById('address').value = s.address || "";
         document.getElementById('source').value = s.source || "FB粉絲專頁";
 
-        // 1. 先把日期選單重置為「請選擇」，確保舊的選取狀態清空
-        dateSelect.selectedIndex = 0; 
-        
-        // 2. 遍歷標題，尋找該學生有資料的日期欄位
-        serverHeaders.forEach(h => {
-            const headerStr = h.toString();
-            // 如果欄位名稱是 8 位數字，且該學員在此欄位有資料 (不論是 QRCID 或其他註記)
-            if (/^\d{8}$/.test(headerStr) && s[headerStr]) {
-                dateSelect.value = headerStr; // 這裡才會正式選中該日期
-            }
-        });
+        const dateSelect = document.getElementById('courseDate');
+        dateSelect.selectedIndex = 0;
+        serverHeaders.forEach(h => { if (s[h.toString()]) dateSelect.value = h.toString(); });
 
-        // 3. 其他顯示邏輯
         handleStudyTime(s.studyTime);
-        statusArea.classList.remove('hidden');
-        document.getElementById('status-box').innerText = s.adStatus || "審核中";
+        document.getElementById('status-display-area').classList.remove('hidden');
+        document.getElementById('status-box').innerText = s.status || "審核中";
 
-        if (s.qrcId) {
-            btn.classList.add('hidden');
-            showQRCode(s.qrcId);
+        btnSubmit.classList.add('hidden');
+        btnDelete.classList.remove('hidden');
+        btnUpdate.classList.add('hidden');
+
+        if (s.qrcId) showQRCode(s.qrcId);
+    }
+
+    function detectChange() {
+        if (currentMode !== "old") return;
+        const btnDelete = document.getElementById('btn-delete');
+        const btnUpdate = document.getElementById('btn-update');
+        
+        // 比對目前欄位與原始資料
+        const changed = 
+            document.getElementById('stuName').value !== originalData.stuName ||
+            document.getElementById('parName').value !== originalData.parName ||
+            document.getElementById('school').value !== originalData.school ||
+            document.getElementById('grade').value !== originalData.grade ||
+            document.getElementById('instrument').value !== originalData.instrument ||
+            document.getElementById('address').value !== originalData.address;
+
+        if (changed) {
+            btnDelete.classList.add('hidden');
+            btnUpdate.classList.remove('hidden');
         } else {
-            btn.classList.remove('hidden');
-            qrResult.classList.add('hidden');
+            btnDelete.classList.remove('hidden');
+            btnUpdate.classList.add('hidden');
         }
     }
 
+    function deleteRecord() {
+        if (!confirm("確定要取消報名並刪除資料嗎？")) return;
+        const payload = { 
+            action: 'deleteUser', 
+            parentPhone: document.getElementById('parPhone').value,
+            stuName: document.getElementById('stuName').value
+        };
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(() => { alert("已刪除！"); location.reload(); });
+    }
+
+    function updateRecord() {
+        const payload = {
+            action: 'updateUser',
+            oldStuName: originalData.stuName,
+            stuName: document.getElementById('stuName').value,
+            stuPhone: document.getElementById('stuPhone').value,
+            parName: document.getElementById('parName').value,
+            parentPhone: document.getElementById('parPhone').value,
+            school: document.getElementById('school').value,
+            grade: document.getElementById('grade').value,
+            instrument: document.getElementById('instrument').value,
+            studyTime: document.getElementById('studyTime').value,
+            song: document.getElementById('song').value,
+            city: document.getElementById('city').value,
+            dist: document.getElementById('dist').value,
+            address: document.getElementById('address').value,
+            source: document.getElementById('source').value
+        };
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(() => { alert("資料已更新！"); location.reload(); });
+    }
+
     function handleStudyTime(val) {
-        const songGroup = document.getElementById('song-group');
-        const zeroMsg = document.getElementById('zero-msg');
-        const songInput = document.getElementById('song');
-        if (val === '零基礎') {
-            songGroup.style.display = 'none';
-            zeroMsg.style.display = 'block';
-            songInput.required = false;
-        } else {
-            songGroup.style.display = 'block';
-            zeroMsg.style.display = 'none';
-            songInput.required = true;
-        }
+        const sg = document.getElementById('song-group');
+        const zm = document.getElementById('zero-msg');
+        if (val === '零基礎') { sg.style.display = 'none'; zm.style.display = 'block'; }
+        else { sg.style.display = 'block'; zm.style.display = 'none'; }
     }
 
     function submitForm() {
@@ -289,14 +324,9 @@ function autoFill(val) {
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
             if (res.result === 'success') {
-                btn.classList.add('hidden');
-                document.getElementById('status-display-area').classList.remove('hidden');
                 showQRCode(qrcId);
                 alert("報名成功！");
-            } else {
-                alert("錯誤：" + res.message);
-                btn.disabled = false;
-                btn.innerText = "確認報名並產生憑證";
+                btn.classList.add('hidden');
             }
         });
     }
@@ -306,13 +336,40 @@ function autoFill(val) {
         qrDiv.innerHTML = ""; 
         document.getElementById('display-qrcid').innerText = "憑證編號：" + qrcId;
         document.getElementById('qr-result').classList.remove('hidden');
-        new QRCode(qrDiv, { text: qrcId, width: 200, height: 200, correctLevel : QRCode.CorrectLevel.H });
+        new QRCode(qrDiv, { text: qrcId, width: 256, height: 256, correctLevel : QRCode.CorrectLevel.H });
     }
 
-    function downloadQR() {
-        const canvas = document.querySelector('#qrcode canvas');
+    function downloadQRWithText() {
+        const qrCanvas = document.querySelector('#qrcode canvas');
+        const finalCanvas = document.createElement('canvas');
+        const ctx = finalCanvas.getContext('2d');
+        
+        finalCanvas.width = 400;
+        finalCanvas.height = 500;
+        
+        // 背景白色
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 400, 500);
+        
+        // 標題
+        ctx.fillStyle = "#2c3e50";
+        ctx.font = "bold 20px Microsoft JhengHei";
+        ctx.textAlign = "center";
+        ctx.fillText("SKYLINE 天際綫藝術學院", 200, 50);
+        ctx.font = "bold 18px Microsoft JhengHei";
+        ctx.fillText("團員招募報到 QR code", 200, 80);
+        
+        // 繪製 QR Code (置中)
+        ctx.drawImage(qrCanvas, 72, 120, 256, 256);
+        
+        // 底部資訊
+        ctx.fillStyle = "#7f8c8d";
+        ctx.font = "14px Microsoft JhengHei";
+        ctx.fillText("學生姓名：" + document.getElementById('stuName').value, 200, 420);
+        ctx.fillText(document.getElementById('display-qrcid').innerText, 200, 450);
+
         const link = document.createElement('a');
-        link.href = canvas.toDataURL("image/png");
+        link.href = finalCanvas.toDataURL("image/png");
         link.download = `Skyline憑證_${document.getElementById('stuName').value}.png`;
         link.click();
     }
