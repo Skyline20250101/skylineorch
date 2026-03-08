@@ -227,19 +227,26 @@
         if (s.qrcId) showQRCode(s.qrcId);
     }
 
-    function detectChange() {
+function detectChange() {
         if (currentMode !== "old") return;
         const btnDelete = document.getElementById('btn-delete');
         const btnUpdate = document.getElementById('btn-update');
         
-        // 比對目前欄位與原始資料
+        // 完整比對所有欄位與 originalData 的原始值
         const changed = 
-            document.getElementById('stuName').value !== originalData.stuName ||
-            document.getElementById('parName').value !== originalData.parName ||
-            document.getElementById('school').value !== originalData.school ||
-            document.getElementById('grade').value !== originalData.grade ||
-            document.getElementById('instrument').value !== originalData.instrument ||
-            document.getElementById('address').value !== originalData.address;
+            document.getElementById('stuName').value !== (originalData.stuName || "") ||
+            document.getElementById('stuPhone').value !== (originalData.stuPhone || "") ||
+            document.getElementById('parName').value !== (originalData.parName || "") ||
+            document.getElementById('school').value !== (originalData.school || "") ||
+            document.getElementById('grade').value !== (originalData.grade || "") ||
+            document.getElementById('instrument').value !== (originalData.instrument || "") ||
+            document.getElementById('studyTime').value !== (originalData.studyTime || "") ||
+            document.getElementById('song').value !== (originalData.song || "") ||
+            document.getElementById('city').value !== (originalData.city || "") ||
+            document.getElementById('dist').value !== (originalData.dist || "") ||
+            document.getElementById('address').value !== (originalData.address || "") ||
+            document.getElementById('courseDate').value !== (Object.keys(originalData).find(key => originalData[key] === "已報名") || "") ||
+            document.getElementById('source').value !== (originalData.source || "");
 
         if (changed) {
             btnDelete.classList.add('hidden');
