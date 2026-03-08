@@ -181,7 +181,7 @@
         });
     }
 
-    function autoFill(val) {
+function autoFill(val) {
         const btn = document.getElementById('btn-submit');
         const statusArea = document.getElementById('status-display-area');
         const qrResult = document.getElementById('qr-result');
@@ -193,31 +193,37 @@
             btn.classList.remove('hidden');
             statusArea.classList.add('hidden');
             qrResult.classList.add('hidden');
+            dateSelect.selectedIndex = 0; // 重置日期選單
             return;
         }
 
         const s = userData[val];
-        document.getElementById('stuName').value = s.stuName;
+        document.getElementById('stuName').value = s.stuName || "";
         document.getElementById('stuPhone').value = s.stuPhone || "";
-        document.getElementById('parName').value = s.parName;
-        document.getElementById('school').value = s.school;
-        document.getElementById('grade').value = s.grade;
-        document.getElementById('instrument').value = s.instrument;
-        document.getElementById('studyTime').value = s.studyTime;
+        document.getElementById('parName').value = s.parName || "";
+        document.getElementById('school').value = s.school || "";
+        document.getElementById('grade').value = s.grade || "";
+        document.getElementById('instrument').value = s.instrument || "";
+        document.getElementById('studyTime').value = s.studyTime || "";
         document.getElementById('song').value = s.song || "";
-        document.getElementById('city').value = s.city;
+        document.getElementById('city').value = s.city || "";
         updateDist(s.city);
-        document.getElementById('dist').value = s.dist;
-        document.getElementById('address').value = s.address;
-        document.getElementById('source').value = s.source;
+        document.getElementById('dist').value = s.dist || "";
+        document.getElementById('address').value = s.address || "";
+        document.getElementById('source').value = s.source || "FB粉絲專頁";
         
-        // 自動對齊原本報名的日期
-        dateSelect.selectedIndex = 0;
+        // --- 修正後的日期對齊邏輯 ---
+        dateSelect.selectedIndex = 0; // 先預設回「請選擇」
+        
+        // 遍歷所有標題，尋找符合 8 位數字且該學生在該欄位有值的日期
         serverHeaders.forEach(h => {
-            if (/^\d{8}$/.test(h.toString()) && s[h]) {
-                dateSelect.value = h;
+            const headerStr = h.toString();
+            // 判斷是否為日期欄位，且該生在該欄位是否有內容 (不論內容是 QRCID 或是「已報名」)
+            if (/^\d{8}$/.test(headerStr) && s[headerStr]) {
+                dateSelect.value = headerStr;
             }
         });
+        // --------------------------
 
         handleStudyTime(s.studyTime);
         statusArea.classList.remove('hidden');
