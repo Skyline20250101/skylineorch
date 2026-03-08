@@ -19,13 +19,9 @@
         button:hover { background: #34495e; opacity: 0.9; }
         .hidden { display: none; }
         
-        /* 舊生選擇器樣式 */
         #student-selector { background: var(--light-blue); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #3498db; }
+        .status-box { background: #fff5f5; border: 2px solid var(--danger); color: var(--danger); padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 18px; }
         
-        /* 錄取狀態專用樣式 */
-        .status-box { background: #fff5f5; border: 1px solid var(--danger); color: var(--danger); padding: 12px; border-radius: 6px; font-weight: bold; text-align: center; margin-top: 5px; }
-        
-        /* QR Code 憑證區塊樣式 */
         #checkin-result-section { 
             margin-top: 30px; padding: 25px; border: 3px dashed var(--primary); border-radius: 15px; background: #fff; text-align: center;
         }
@@ -42,9 +38,9 @@
         <div class="form-group">
             <label>請輸入家長手機號碼</label>
             <input type="tel" id="search-phone" placeholder="例如：0912345678" maxlength="10" inputmode="numeric">
-            <button type="button" id="btn-check" onclick="checkUser()">開始報名 / 查詢資料</button>
+            <button type="button" onclick="checkUser()">開始報名 / 查詢資料</button>
         </div>
-        <div id="loading-msg" style="text-align:center; display:none;">通訊中，請稍候...</div>
+        <div id="loading-msg" style="text-align:center; display:none;">查詢中，請稍候...</div>
     </div>
 
     <div id="student-selector" class="hidden">
@@ -56,13 +52,14 @@
 
     <form id="reg-form" class="hidden">
         <div class="form-group"><label>學生姓名 *</label><input type="text" id="stuName" required></div>
-        <div class="form-group"><label>學生手機 (無則免填)</label><input type="tel" id="stuPhone"></div>
+        <div class="form-group"><label>學生手機號碼</label><input type="tel" id="stuPhone"></div>
         <div class="form-group"><label>家長姓名 *</label><input type="text" id="parName" required></div>
-        <div class="form-group"><label>家長手機 (唯讀)</label><input type="text" id="parPhone" readonly></div>
+        <div class="form-group"><label>家長手機號碼 (唯讀)</label><input type="text" id="parPhone" readonly></div>
         <div class="form-group"><label>就讀學校 *</label><input type="text" id="school" required></div>
         <div class="form-group">
             <label>就讀年級 *</label>
             <select id="grade" required>
+                <option value="">-- 請選擇年級 --</option>
                 <option value="小三">小三</option><option value="小四">小四</option><option value="小五">小五</option><option value="小六">小六</option>
                 <option value="國一">國一</option><option value="國二">國二</option><option value="國三">國三</option>
                 <option value="高一">高一</option><option value="高二">高二</option><option value="高三">高三</option>
@@ -72,10 +69,17 @@
         <div class="form-group">
             <label>學習時間 *</label>
             <select id="studyTime" required>
+                <option value="">-- 請選擇時間 --</option>
                 <option value="零基礎">零基礎</option><option value="0~1年">0~1年</option><option value="1~2年">1~2年</option>
                 <option value="2~3年">2~3年</option><option value="3~4年">3~4年</option>
             </select>
         </div>
+        <div class="form-group"><label>自選曲目</label><input type="text" id="song"></div>
+        <div class="form-group"><label>地址(縣市)</label><input type="text" id="addrCity"></div>
+        <div class="form-group"><label>地址(區域)</label><input type="text" id="addrDist"></div>
+        <div class="form-group"><label>詳細地址</label><input type="text" id="addrDetail"></div>
+        <div class="form-group"><label>訊息來源</label><input type="text" id="source"></div>
+
         <div class="form-group">
             <label>選擇招募日期 *</label>
             <select id="courseDate" required>
@@ -85,9 +89,9 @@
             </select>
         </div>
 
-        <div id="status-display-group" style="display:none; margin-bottom: 15px;">
+        <div id="status-display-group" style="display:none; margin-top: 20px; margin-bottom: 20px;">
             <label>錄取狀態</label>
-            <div id="display-status-text" class="status-box">審核中</div>
+            <div id="display-status-text" class="status-box"></div>
         </div>
         
         <button type="button" id="btn-submit" onclick="submitForm()">送出報名並取得 QR Code</button>
@@ -106,7 +110,7 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyg3uS15mMhbY87YnyMuM77ZateljVNpH3555EUYUv9iKInO35EMrina3wzir-AZMh5/exec";
     let userData = [];
 
-    // 1. 查詢家長手機
+    // 1. 查詢手機
     function checkUser() {
         const phone = document.getElementById('search-phone').value.trim();
         if (phone.length < 10) return alert("請輸入正確的手機號碼");
@@ -117,6 +121,7 @@
             method: 'POST',
             body: JSON.stringify({ action: 'checkUser', parentPhone: phone })
         }).then(res => res.json()).then(res => {
+            document.getElementById('loading-msg').style.display = 'none';
             document.getElementById('step-1').classList.add('hidden');
             document.getElementById('reg-form').classList.remove('hidden');
             document.getElementById('parPhone').value = phone;
@@ -128,21 +133,21 @@
                 selector.classList.remove('hidden');
                 userData.forEach((s, i) => list.add(new Option(s.stuName, i)));
                 
-                // 自動帶入第一筆
+                // 預設帶入第一筆
                 handleSelectStudent(0);
                 list.value = 0;
             }
         });
     }
 
-    // 2. 處理選擇學員（舊生帶入）
+    // 2. 處理學員選擇 (舊生自動填入邏輯)
     function handleSelectStudent(val) {
         const btnSubmit = document.getElementById('btn-submit');
         const statusGroup = document.getElementById('status-display-group');
         const resultSection = document.getElementById('checkin-result-section');
 
         if (val === 'new') {
-            // 清空表單，顯示按鈕，隱藏狀態與QRC
+            // 新增學員：清空欄位 (保留家長手機), 顯示按鈕, 隱藏狀態與QRC
             document.getElementById('reg-form').reset();
             document.getElementById('parPhone').value = document.getElementById('search-phone').value;
             btnSubmit.classList.remove('hidden');
@@ -151,41 +156,34 @@
             return;
         }
         
-        // 載入舊資料：1. 隱藏按鈕 2. 顯示狀態欄
+        // 載入舊生：隱藏按鈕, 顯示狀態與QRC
         btnSubmit.classList.add('hidden');
         statusGroup.style.display = 'block';
 
         const s = userData[val];
         
-        // 檢查並帶入所有欄位資料
+        // 14 個欄位完整帶入
         document.getElementById('stuName').value = s.stuName || "";
         document.getElementById('stuPhone').value = s.stuPhone || "";
         document.getElementById('parName').value = s.parName || "";
         document.getElementById('school').value = s.school || "";
-        document.getElementById('grade').value = s.grade || "小三";
+        document.getElementById('grade').value = s.grade || "";
         document.getElementById('instrument').value = s.instrument || "";
-        document.getElementById('studyTime').value = s.studyTime || "零基礎";
+        document.getElementById('studyTime').value = s.studyTime || "";
+        document.getElementById('song').value = s.song || "";
+        document.getElementById('addrCity').value = s.addrCity || "";
+        document.getElementById('addrDist').value = s.addrDist || "";
+        document.getElementById('addrDetail').value = s.addrDetail || "";
+        document.getElementById('source').value = s.source || "";
+        
+        // 顯示錄取狀態 (位於日期下方)
         document.getElementById('display-status-text').innerText = s.adStatus || "審核中";
         
-        const date = document.getElementById('courseDate').value;
-        const qrcId = s.qrcId; // 舊生直接延用資料庫內的 QRC ID
-
-        showQRCodeArea(qrcId);
-        
-        // 背景同步報名日期
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'register',
-                stuName: s.stuName,
-                parentPhone: document.getElementById('parPhone').value,
-                courseDate: date,
-                qrcId: qrcId
-            })
-        });
+        // 直接使用舊有的 qrcId 產生 QR Code
+        showQRCodeArea(s.qrcId);
     }
 
-    // 3. 處理新生送出報名
+    // 3. 新生提交報名
     function submitForm() {
         const form = document.getElementById('reg-form');
         if(!form.checkValidity()) return form.reportValidity();
@@ -197,9 +195,10 @@
         const name = document.getElementById('stuName').value;
         const date = document.getElementById('courseDate').value;
 
-        // 恢復原本 QRC 規則：拼音-日期-隨機三碼
+        // 恢復原始規則：拼音-日期-隨機三碼
         const pinyinName = pinyinPro.pinyin(name, { toneType: 'none', type: 'array' }).join('');
-        const qrcId = `${pinyinName}-${date}-${Math.floor(100 + Math.random()*899)}`;
+        const randomNum = Math.floor(100 + Math.random() * 899);
+        const qrcId = `${pinyinName}-${date}-${randomNum}`;
 
         const payload = {
             action: 'register',
@@ -211,6 +210,11 @@
             grade: document.getElementById('grade').value,
             instrument: document.getElementById('instrument').value,
             studyTime: document.getElementById('studyTime').value,
+            song: document.getElementById('song').value,
+            addrCity: document.getElementById('addrCity').value,
+            addrDist: document.getElementById('addrDist').value,
+            addrDetail: document.getElementById('addrDetail').value,
+            source: document.getElementById('source').value,
             courseDate: date,
             qrcId: qrcId
         };
@@ -227,7 +231,7 @@
         });
     }
 
-    // 4. 顯示 QR Code 區塊
+    // 4. QR Code 顯示函數
     function showQRCodeArea(qrcId) {
         const qrContainer = document.getElementById("qrcode");
         qrContainer.innerHTML = ""; 
