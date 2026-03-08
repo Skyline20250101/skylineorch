@@ -22,25 +22,12 @@
         /* 舊生選擇器樣式 */
         #student-selector { background: var(--light-blue); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #3498db; }
         
-        /* 新增：QR Code 憑證區塊樣式 */
+        /* 錄取狀態專用樣式 */
+        .status-box { background: #fff5f5; border: 1px solid var(--danger); color: var(--danger); padding: 12px; border-radius: 6px; font-weight: bold; text-align: center; margin-top: 5px; }
+        
+        /* QR Code 憑證區塊樣式 */
         #checkin-result-section { 
-            margin-top: 30px; 
-            padding: 25px; 
-            border: 3px dashed var(--primary); 
-            border-radius: 15px; 
-            background: #fff;
-            text-align: center;
-        }
-        .status-badge {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--danger);
-            background: #fff5f5;
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: inline-block;
-            margin: 10px 0;
-            border: 1px solid var(--danger);
+            margin-top: 30px; padding: 25px; border: 3px dashed var(--primary); border-radius: 15px; background: #fff; text-align: center;
         }
         #qrcode { display: inline-block; padding: 10px; background: white; border: 1px solid #eee; }
         .btn-line { background: #00b900; margin-top: 8px; }
@@ -97,15 +84,17 @@
                 <option value="20260329">2026-03-29</option>
             </select>
         </div>
+
+        <div id="status-display-group" style="display:none; margin-bottom: 15px;">
+            <label>錄取狀態</label>
+            <div id="display-status-text" class="status-box">審核中</div>
+        </div>
         
         <button type="button" id="btn-submit" onclick="submitForm()">送出報名並取得 QR Code</button>
     </form>
 
     <div id="checkin-result-section" class="hidden">
         <h3 style="margin-top:0;">報到憑證</h3>
-        <div>錄取狀態：</div>
-        <div id="display-status" class="status-badge">審核中</div>
-        <br>
         <div id="qrcode"></div>
         <p id="display-qrcid" style="font-size: 12px; color: #999; margin-bottom: 20px;"></p>
         <button onclick="downloadQR()" style="background:#7f8c8d;">儲存憑證圖片</button>
@@ -139,7 +128,7 @@
                 selector.classList.remove('hidden');
                 userData.forEach((s, i) => list.add(new Option(s.stuName, i)));
                 
-                // 自動帶入第一筆並顯示 QR
+                // 自動帶入第一筆
                 handleSelectStudent(0);
                 list.value = 0;
             }
@@ -148,34 +137,48 @@
 
     // 2. 處理選擇學員（舊生帶入）
     function handleSelectStudent(val) {
+        const btnSubmit = document.getElementById('btn-submit');
+        const statusGroup = document.getElementById('status-display-group');
+        const resultSection = document.getElementById('checkin-result-section');
+
         if (val === 'new') {
-            // 清空表單供填寫新小孩
-            document.getElementById('stuName').value = "";
-            document.getElementById('checkin-result-section').classList.add('hidden');
+            // 清空表單，顯示按鈕，隱藏狀態與QRC
+            document.getElementById('reg-form').reset();
+            document.getElementById('parPhone').value = document.getElementById('search-phone').value;
+            btnSubmit.classList.remove('hidden');
+            statusGroup.style.display = 'none';
+            resultSection.classList.add('hidden');
             return;
         }
         
-        const s = userData[val];
-        // 帶入資料到表單
-        document.getElementById('stuName').value = s.stuName;
-        document.getElementById('parName').value = s.parName;
-        document.getElementById('school').value = s.school;
-        
-        // 取得必要參數
-        const phone = document.getElementById('parPhone').value;
-        const date = document.getElementById('courseDate').value;
-        const qrcId = s.stuName + phone.slice(-4); // 姓名 + 手機末四碼
+        // 載入舊資料：1. 隱藏按鈕 2. 顯示狀態欄
+        btnSubmit.classList.add('hidden');
+        statusGroup.style.display = 'block';
 
-        // 在下方顯示 QR Code 與狀態
-        showQRCodeArea(qrcId, s.adStatus || "審核中");
+        const s = userData[val];
         
-        // 背景同步報名日期到 Google Sheet
+        // 檢查並帶入所有欄位資料
+        document.getElementById('stuName').value = s.stuName || "";
+        document.getElementById('stuPhone').value = s.stuPhone || "";
+        document.getElementById('parName').value = s.parName || "";
+        document.getElementById('school').value = s.school || "";
+        document.getElementById('grade').value = s.grade || "小三";
+        document.getElementById('instrument').value = s.instrument || "";
+        document.getElementById('studyTime').value = s.studyTime || "零基礎";
+        document.getElementById('display-status-text').innerText = s.adStatus || "審核中";
+        
+        const date = document.getElementById('courseDate').value;
+        const qrcId = s.qrcId; // 舊生直接延用資料庫內的 QRC ID
+
+        showQRCodeArea(qrcId);
+        
+        // 背景同步報名日期
         fetch(GAS_URL, {
             method: 'POST',
             body: JSON.stringify({
                 action: 'register',
                 stuName: s.stuName,
-                parentPhone: phone,
+                parentPhone: document.getElementById('parPhone').value,
                 courseDate: date,
                 qrcId: qrcId
             })
@@ -192,16 +195,18 @@
         btn.innerText = "處理中...";
 
         const name = document.getElementById('stuName').value;
-        const phone = document.getElementById('parPhone').value;
         const date = document.getElementById('courseDate').value;
-        const qrcId = name + phone.slice(-4);
+
+        // 恢復原本 QRC 規則：拼音-日期-隨機三碼
+        const pinyinName = pinyinPro.pinyin(name, { toneType: 'none', type: 'array' }).join('');
+        const qrcId = `${pinyinName}-${date}-${Math.floor(100 + Math.random()*899)}`;
 
         const payload = {
             action: 'register',
             stuName: name,
             stuPhone: document.getElementById('stuPhone').value,
             parName: document.getElementById('parName').value,
-            parentPhone: phone,
+            parentPhone: document.getElementById('parPhone').value,
             school: document.getElementById('school').value,
             grade: document.getElementById('grade').value,
             instrument: document.getElementById('instrument').value,
@@ -213,22 +218,21 @@
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
             if (res.result === 'success') {
-                showQRCodeArea(qrcId, "審核中");
-                btn.innerText = "已完成報名";
-                alert("報名成功！請查看下方 QR Code 憑證。");
+                document.getElementById('status-display-group').style.display = 'block';
+                document.getElementById('display-status-text').innerText = "審核中";
+                showQRCodeArea(qrcId);
+                btn.innerText = "報名成功";
+                alert("報名完成！");
             }
         });
     }
 
-    // 4. 顯示 QR Code 區塊的共用函數
-    function showQRCodeArea(qrcId, status) {
+    // 4. 顯示 QR Code 區塊
+    function showQRCodeArea(qrcId) {
         const qrContainer = document.getElementById("qrcode");
-        qrContainer.innerHTML = ""; // 先清空舊的
-        
-        document.getElementById('display-status').innerText = status;
+        qrContainer.innerHTML = ""; 
         document.getElementById('display-qrcid').innerText = "憑證編號：" + qrcId;
         
-        // 產生 QR Code
         new QRCode(qrContainer, { 
             text: qrcId, 
             width: 180, 
@@ -236,13 +240,11 @@
             correctLevel : QRCode.CorrectLevel.H
         });
 
-        // 顯示該區塊並平滑滾動過去
         const section = document.getElementById('checkin-result-section');
         section.classList.remove('hidden');
         section.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 下載圖片
     function downloadQR() {
         const canvas = document.querySelector('#qrcode canvas');
         const link = document.createElement('a');
@@ -251,7 +253,6 @@
         link.click();
     }
 
-    // LINE 回報
     function contactLine() {
         const name = document.getElementById('stuName').value;
         const parName = document.getElementById('parName').value;
