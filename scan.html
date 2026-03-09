@@ -88,10 +88,18 @@ window.onload = () => {
         if(res.result === 'success') {
             const select = document.getElementById('courseDate');
             select.innerHTML = ""; // 清空舊的
-            res.dates.forEach(d => {
-                const opt = new Option(d, d);
-                select.add(opt);
-            });
+const now = new Date();
+const todayStr = now.getFullYear() + 
+                 (now.getMonth() + 1).toString().padStart(2, '0') + 
+                 now.getDate().toString().padStart(2, '0');
+
+res.dates.forEach(d => {
+    // 只有當日期標題大於等於今天，才加入選單
+    if (d.toString() >= todayStr) {
+        const opt = new Option(d, d);
+        select.add(opt);
+    }
+});
             loadList(); // 日期抓完後再抓名單
         }
     });
