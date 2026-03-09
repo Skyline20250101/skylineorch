@@ -198,17 +198,29 @@ window.onload = () => {
             document.getElementById('parPhone').value = phone;
             serverHeaders = res.headers || [];
             
-            const dateSelect = document.getElementById('courseDate');
-            dateSelect.innerHTML = '<option value="">-- 請選擇 --</option>';
-            serverHeaders.forEach(h => { if (/^\d{8}$/.test(h.toString())) dateSelect.add(new Option(h, h)); });
+const dateSelect = document.getElementById('courseDate');
+dateSelect.innerHTML = '<option value="">-- 請選擇 --</option>';
 
-            if (res.exists) {
-                userData = res.students;
-                document.getElementById('student-selector').classList.remove('hidden');
-                const list = document.getElementById('exist-student-list');
-                list.innerHTML = '<option value="">-- 請選擇 --</option><option value="new">-- 新增學員 --</option>';
-                userData.forEach((s, i) => list.add(new Option(s.stuName, i)));
-            }
+// 1. 取得今天的日期字串 (格式：20260309)
+const now = new Date();
+const todayStr = now.getFullYear() + 
+                 (now.getMonth() + 1).toString().padStart(2, '0') + 
+                 now.getDate().toString().padStart(2, '0');
+
+serverHeaders.forEach(h => { 
+    // 2. 判斷是否為 8 位數字，且該數字大於或等於今天的日期
+    if (/^\d{8}$/.test(h.toString()) && h.toString() >= todayStr) { 
+        dateSelect.add(new Option(h, h)); 
+    } 
+});
+
+if (res.exists) {
+    userData = res.students;
+    document.getElementById('student-selector').classList.remove('hidden');
+    const list = document.getElementById('exist-student-list');
+    list.innerHTML = '<option value="">-- 請選擇 --</option><option value="new">-- 新增學員 --</option>';
+    userData.forEach((s, i) => list.add(new Option(s.stuName, i)));
+}
         });
     }
 
