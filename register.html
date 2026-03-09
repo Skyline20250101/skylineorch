@@ -81,8 +81,6 @@
         <div class="form-group"><label>學生姓名 *</label><input type="text" id="stuName" required oninput="detectChange()"></div>
         <div class="form-group"><label>學生手機 (選填)</label><input type="tel" id="stuPhone" oninput="detectChange()"></div>
         <hr>
-        <div class="form-group"><label>家長姓名 *</label><input type="text" id="parName" required oninput="detectChange()"></div>
-        <div class="form-group"><label>家長手機</label><input type="text" id="parPhone" readonly></div>
         <div class="form-group"><label>就讀學校 *</label><input type="text" id="school" required oninput="detectChange()"></div>
         <div class="form-group">
             <label>就讀年級 *</label>
@@ -126,6 +124,9 @@
             <select id="courseDate" required onchange="detectChange()"></select>
         </div>
 
+        <div class="form-group"><label>家長姓名 *</label><input type="text" id="parName" required oninput="detectChange()"></div>
+        <div class="form-group"><label>家長手機</label><input type="text" id="parPhone" readonly></div>
+        
         <div id="status-display-area" class="hidden">
             <label>目前錄取狀態</label>
             <div id="status-box" class="status-box">審核中</div>
